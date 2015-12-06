@@ -1,4 +1,6 @@
 /*
+ * libncipher - n_cipher library for C.
+ * 
  * Copyright (c) 2015 sasairc
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,11 +24,15 @@
 
 #include "./n_cipher.h"
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
 #include <math.h>
 #include <glib.h>
+
+int strrep(char* src, char* haystack, char* needle);
+int mbstrlen(char* src);
 
 int strrep(char* src, char* haystack, char* needle)
 {
@@ -202,49 +208,38 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     return i;
 }
 
-void release_table(list_t* table)
-{
-    list_t* tmp = NULL;
-
-    while (table != NULL) {
-        tmp = table->next;
-
-        if (table->character != NULL)
-            free(table->character);
-        free(table);
-
-        table = tmp;
-    }
-
-    return;
-}
-
-char* encode_table(unsigned int number, int base, list_t* table, list_t* start)
+char* encode_table(int cpoint, int base, list_t* table, list_t* start)
 {
     if (table == NULL || start == NULL)
         return NULL;
 
-    int     i       = 0,
-            j       = 0,
-            y       = 0;
-    size_t  size    = 0;
-    char*   dest    = NULL,
-        **  tmp     = NULL;
+    int         i       = 0,
+                y       = 0,
+                fragmnt = 0,
+                y_bufl  = BUFLEN;
+    size_t      size    = 0;
+    char*       dest    = NULL,
+        **      tmp     = NULL;
 
-    if ((tmp = (char**)malloc(sizeof(char*) * 64)) == NULL)
+    if ((tmp = (char**)malloc(sizeof(char*) * y_bufl)) == NULL)
         return NULL;
 
-    while (number > 0) {
-        j = number % base;
+    while (cpoint > 0) {
+        if (y > y_bufl) {
+            y_bufl += BUFLEN;
+            tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl);
+        }
+
+        fragmnt = cpoint % base;
 
         table = start;
-        while (j != table->number)
+        while (fragmnt != table->number)
             table = table->next;
 
         tmp[y] = table->character;
         size += strlen(table->character);
 
-        number /= base;
+        cpoint /= base;
         y++;
     }
     y--;
@@ -263,21 +258,26 @@ char* encode_table(unsigned int number, int base, list_t* table, list_t* start)
     return dest;
 }
 
-long decode_table(char* string, int base, list_t* table, list_t* start)
+int decode_table(char* string, int base, list_t* table, list_t* start)
 {
-    if (string == NULL || string == NULL)
+    if (string == NULL || string == NULL || strlen(string) == 0)
         return 0;
 
-    long    sum     = 0;
     int     i       = 0,
             j       = 0,
-            code    = 0;
+            sum     = 0,
+            code    = 0,
+            y_bufl  = BUFLEN;
     char**  tmp     = NULL;
 
-    tmp = (char**)malloc(sizeof(char*) * 128);
+    tmp = (char**)malloc(sizeof(char*) * y_bufl);
     while (*string != '\0') {
-        int code = (unsigned char)*string;
+        if (i > y_bufl) {
+            y_bufl += BUFLEN;
+            tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl);
+        }
 
+        code = (unsigned char)*string;
         if (code < 0x80) {
             tmp[i] = (char*)malloc(sizeof(char) * 2);
             sprintf(tmp[i], "%c", *string);
@@ -308,15 +308,32 @@ long decode_table(char* string, int base, list_t* table, list_t* start)
     for (j = 0; i >= 0; i--, j++) {
         table = start;
 
-        while(strstr(tmp[i], table->character) == NULL)
+        while(strstr(tmp[i], table->character) == NULL && table->next != NULL)
             table = table->next;
 
-        sum += table->number * (double)pow((double)base, (double)j);
+        sum += table->number * (int)pow((double)base, (double)j);
         free(tmp[i]);
     }
     free(tmp);
 
     return sum;
+}
+
+void release_table(list_t* table)
+{
+    list_t* tmp = NULL;
+
+    while (table != NULL) {
+        tmp = table->next;
+
+        if (table->character != NULL)
+            free(table->character);
+        free(table);
+
+        table = tmp;
+    }
+
+    return;
 }
 
 char* encode_n_cipher(char* string, char* seed, char* delimiter)
@@ -375,8 +392,12 @@ char* encode_n_cipher(char* string, char* seed, char* delimiter)
 
 char* decode_n_cipher(char* string, char* seed, char* delimiter)
 {
-    int         decimal = 0;
-    gunichar    cpoints = 0;
+    if (string == NULL || seed == NULL || delimiter == NULL)
+        return NULL;
+
+    int         decimal = 0,
+                x_bufl  = BUFLEN;
+    gunichar    cpoint  = 0;
     char*       strtmp  = NULL,
         *       token   = NULL,
         *       dest    = NULL;
@@ -392,25 +413,39 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     strtmp = (char*)malloc(sizeof(char) * (strlen(string) + strlen(delimiter)));
     strcpy(strtmp, string);
 
+    /* replace delimiter to space */
     while (strrep(strtmp, delimiter, " ") == 0);
 
     token = strtok(strtmp, " ");
     buf = (gchar*)malloc(sizeof(gchar));
-    dest = (char*)malloc(sizeof(char) * 640);
+    dest = (char*)malloc(sizeof(char) * x_bufl);
     strcpy(dest, "");
 
     while (token != NULL) {
-        cpoints = (gunichar)decode_table(token, decimal, table, start);
-        c_size = g_unichar_to_utf8(cpoints, buf);
+        if (strlen(dest) < x_bufl) {
+            x_bufl += BUFLEN;
+            dest = (char*)realloc(dest, sizeof(char) * x_bufl);
+        }
+
+        /* get ucs4 codepint */
+        cpoint = (gunichar)decode_table(token, decimal, table, start);
+
+        /* convert ucs4 to character */
+        c_size = g_unichar_to_utf8(cpoint, buf);
 
         sprintf(dest, "%s%.*s", dest, c_size, buf);
-
         token = strtok(NULL, " ");
     }
 
     /* release memory */
-    free(buf);
-    free(strtmp);
+    if (buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
+    if (strtmp != NULL) {
+        free(strtmp);
+        strtmp = NULL;
+    }
     release_table(start);
 
     return dest;
