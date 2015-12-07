@@ -30,7 +30,7 @@
 #define SEED        "にゃんぱす"   /* default seed */
 #define DELIMITER   "〜"           /* default delimiter */
 
-#define BUFLEN      128             /* default buffer length */
+#define BUFLEN      256             /* default buffer length */
 
 typedef struct _LIST_T {
     int     number;

@@ -31,53 +31,8 @@
 #include <math.h>
 #include <glib.h>
 
-int strrep(char* src, char* haystack, char* needle);
 int mbstrlen(char* src);
-
-int strrep(char* src, char* haystack, char* needle)
-{
-    char*   find = NULL;
-
-    if (src == NULL || haystack == NULL || needle == NULL) {
-
-        return 1;
-    }
-
-    /* seach strings */
-    if ((find = strstr(src, haystack)) == NULL) {
-
-        return 2;       /* word not found */
-    }
-    if (strlen(haystack) < strlen(needle)) {
-        /* reallocate memory */
-        if ((src = (char*)realloc(
-                        src,
-                        strlen(src) + strlen(needle) + 1 - strlen(haystack))
-            ) == NULL) {
-
-            return 3;
-        }
-        /* move match word to specified location in memory */
-        memmove(
-            find + strlen(needle),
-            find + strlen(haystack),
-            strlen(src) - strlen(haystack) - (find - src) + 1
-        );
-        memcpy(find, haystack, strlen(needle));
-    } else {
-        memcpy(find, needle, strlen(needle));
-        /* move match word to specified location in memory */
-        if (strlen(haystack) > strlen(needle)) {
-            memmove(
-                find + strlen(needle),
-                find + strlen(haystack),
-                strlen(src) - strlen(haystack) - (find - src) + 1
-            );
-        }
-    }
-
-    return 0;
-}
+char* mbstrtok(char* str, char* delimiter);
 
 int mbstrlen(char* src)
 {
@@ -115,6 +70,27 @@ int mbstrlen(char* src)
     }
 
     return len;
+}
+
+char* mbstrtok(char* str, char* delimiter)
+{
+    static  char*   ptr = NULL;
+            char*   bdy = NULL;
+
+    if (!str)
+        str = ptr;
+
+    if (!str)
+        return NULL;
+
+    if ((bdy = strstr(str, delimiter)) != NULL) {
+        *bdy = '\0';
+        ptr = bdy + strlen(delimiter);
+    } else {
+        ptr = NULL;
+    }
+
+    return str;
 }
 
 int create_table(char* seed, list_t** dest_table, list_t** dest_start)
@@ -243,8 +219,10 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         y++;
     }
     y--;
+
     dest = (char*)malloc(sizeof(char) * size);
     strcpy(dest, tmp[y]);
+
     y--;
     while (y >= 0) {
         strcat(dest, tmp[y]);
@@ -413,15 +391,11 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     strtmp = (char*)malloc(sizeof(char) * (strlen(string) + strlen(delimiter)));
     strcpy(strtmp, string);
 
-    /* replace delimiter to space */
-    while (strrep(strtmp, delimiter, " ") == 0);
-
-    token = strtok(strtmp, " ");
     buf = (gchar*)malloc(sizeof(gchar));
     dest = (char*)malloc(sizeof(char) * x_bufl);
     strcpy(dest, "");
 
-    while (token != NULL) {
+    for (token = mbstrtok(strtmp, delimiter); token; token = mbstrtok(NULL, delimiter)) {
         if (strlen(dest) < x_bufl) {
             x_bufl += BUFLEN;
             dest = (char*)realloc(dest, sizeof(char) * x_bufl);
@@ -433,8 +407,8 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
         /* convert ucs4 to character */
         c_size = g_unichar_to_utf8(cpoint, buf);
 
+        /* concat character */
         sprintf(dest, "%s%.*s", dest, c_size, buf);
-        token = strtok(NULL, " ");
     }
 
     /* release memory */
