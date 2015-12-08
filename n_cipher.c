@@ -98,7 +98,7 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     int         i       = 0,
                 code    = 0;
     list_t*     table   = NULL,
-          *     start;
+          *     start   = NULL;
 
     if (mbstrlen(seed) < 2 || mbstrlen(seed) > 36)
         return 0;
@@ -112,11 +112,14 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
         code = (unsigned char)*seed;
 
         if (code < 0x80) {
-            table->next = malloc(sizeof(list_t));
-            table = table->next;
+            if ((table->next = malloc(sizeof(list_t))) == NULL)
+                goto ERR;
 
+            table = table->next;
             table->number = i;
-            table->character = (char*)malloc(2 * sizeof(char));
+
+            if ((table->character = (char*)malloc(2 * sizeof(char))) == NULL)
+                goto ERR;
 
             sprintf(table->character, "%c",
                     *seed);
@@ -130,13 +133,17 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
         } else if (code < 0xC0) {
             seed += 1;
         } else if (code < 0xE0) {
-            table->next = malloc(sizeof(list_t));
+            if ((table->next = malloc(sizeof(list_t))) == NULL)
+                goto ERR;
+
             table = table->next;
-
             table->number = i;
-            table->character = (char*)malloc(3 * sizeof(char));
 
-            sprintf(table->character, "%c%c", *seed, *(seed + 1));
+            if ((table->character = (char*)malloc(3 * sizeof(char))) == NULL)
+                goto ERR;
+
+            sprintf(table->character, "%c%c",
+                    *seed, *(seed + 1));
 
             table->next = NULL;
             if (i == 0)
@@ -145,11 +152,14 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
             i++;
             seed += 3;
         } else if (code < 0xF0) {
-            table->next = malloc(sizeof(list_t));
-            table = table->next;
+            if ((table->next = malloc(sizeof(list_t))) == NULL)
+                goto ERR;
 
+            table = table->next;
             table->number = i;
-            table->character = (char*)malloc(4 * sizeof(char));
+
+            if ((table->character = (char*)malloc(4 * sizeof(char))) == NULL)
+                goto ERR;
 
             sprintf(table->character, "%c%c%c",
                     *seed, *(seed + 1), *(seed + 2));
@@ -161,11 +171,14 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
             i++;
             seed += 3;
         } else {
-            table->next = malloc(sizeof(list_t));
-            table = table->next;
+            if ((table->next = malloc(sizeof(list_t))) == NULL)
+                goto ERR;
 
+            table = table->next;
             table->number = i;
-            table->character = (char*)malloc(5 * sizeof(char));
+
+            if ((table->character = (char*)malloc(5 * sizeof(char))) == NULL)
+                goto ERR;
 
             sprintf(table->character, "%c%c%c%c",
                     *seed, *(seed + 1), *(seed + 2), *(seed + 3));
@@ -182,6 +195,11 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     *dest_table = table;
 
     return i;
+
+ERR:
+    release_table(start);
+
+    return 0;
 }
 
 char* encode_table(int cpoint, int base, list_t* table, list_t* start)
@@ -189,13 +207,12 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     if (table == NULL || start == NULL)
         return NULL;
 
-    int         i       = 0,
-                y       = 0,
-                fragmnt = 0,
-                y_bufl  = BUFLEN;
-    size_t      size    = 0;
-    char*       dest    = NULL,
-        **      tmp     = NULL;
+    int     y       = 0,
+            fragmnt = 0,
+            y_bufl  = BUFLEN;
+    size_t  size    = 0;
+    char*   dest    = NULL,
+        **  tmp     = NULL;
 
     if ((tmp = (char**)malloc(sizeof(char*) * y_bufl)) == NULL)
         return NULL;
@@ -203,7 +220,8 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     while (cpoint > 0) {
         if (y > y_bufl) {
             y_bufl += BUFLEN;
-            tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl);
+            if ((tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
+                goto ERR;
         }
 
         fragmnt = cpoint % base;
@@ -220,8 +238,10 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     }
     y--;
 
-    dest = (char*)malloc(sizeof(char) * size);
-    strcpy(dest, tmp[y]);
+    if ((dest = (char*)malloc(sizeof(char) * size)) == NULL)
+        goto ERR;
+    else
+        strcpy(dest, tmp[y]);
 
     y--;
     while (y >= 0) {
@@ -234,6 +254,25 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     }
 
     return dest;
+
+ERR:
+    while (y >= 0) {
+        if (tmp[y] != NULL) {
+            free(tmp[y]);
+            tmp[y] = NULL;
+            y--;
+        }
+    }
+    if (tmp != NULL) {
+        free(tmp);
+        tmp = NULL;
+    }
+    if (dest != NULL) {
+        free(dest);
+        dest = NULL;
+    }
+
+    return NULL;
 }
 
 int decode_table(char* string, int base, list_t* table, list_t* start)
@@ -248,33 +287,47 @@ int decode_table(char* string, int base, list_t* table, list_t* start)
             y_bufl  = BUFLEN;
     char**  tmp     = NULL;
 
-    tmp = (char**)malloc(sizeof(char*) * y_bufl);
+    if ((tmp = (char**)malloc(sizeof(char*) * y_bufl)) == NULL)
+        return 0;
+
     while (*string != '\0') {
         if (i > y_bufl) {
             y_bufl += BUFLEN;
-            tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl);
+            if ((tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
+                goto ERR;
         }
 
         code = (unsigned char)*string;
         if (code < 0x80) {
-            tmp[i] = (char*)malloc(sizeof(char) * 2);
-            sprintf(tmp[i], "%c", *string);
+            if ((tmp[i] = (char*)malloc(sizeof(char) * 2)) == NULL)
+                goto ERR;
+
+            sprintf(tmp[i], "%c",
+                    *string);
             i++;
             string += 1;
         } else if (code < 0xC0) {
             string += 1;
         } else if (code < 0xE0) {
-            tmp[i] = (char*)malloc(sizeof(char) * 3);
-            sprintf(tmp[i], "%c%c", *string, *(string + 1));
+            if ((tmp[i] = (char*)malloc(sizeof(char) * 3)) == NULL)
+                goto ERR;
+
+            sprintf(tmp[i], "%c%c",
+                    *string, *(string + 1));
             i++;
             string += 2;
         } else if (code < 0xF0) {
-            tmp[i] = (char*)malloc(sizeof(char) * 4);
-            sprintf(tmp[i], "%c%c%c", *string, *(string + 1), *(string + 2));
+            if ((tmp[i] = (char*)malloc(sizeof(char) * 4)) == NULL)
+                goto ERR;
+
+            sprintf(tmp[i], "%c%c%c",
+                    *string, *(string + 1), *(string + 2));
             i++;
             string += 3;
         } else {
-            tmp[i] = (char*)malloc(sizeof(char) * 5);
+            if ((tmp[i] = (char*)malloc(sizeof(char) * 5)) == NULL)
+                goto ERR;
+
             sprintf(tmp[i], "%c%c%c%c",
                     *string, *(string + 1), *(string + 2), *(string + 3));
             i++;
@@ -295,6 +348,21 @@ int decode_table(char* string, int base, list_t* table, list_t* start)
     free(tmp);
 
     return sum;
+
+ERR:
+    while (i >= 0) {
+        if (tmp[i] != NULL) {
+            free(tmp[i]);
+            tmp[i] = NULL;
+        }
+        i--;
+    }
+    if (tmp != NULL) {
+        free(tmp);
+        tmp = NULL;
+    }
+    
+    return 0;
 }
 
 void release_table(list_t* table)
@@ -342,16 +410,21 @@ char* encode_n_cipher(char* string, char* seed, char* delimiter)
 
     /* convert ucs4 to table */
     for (i = 0; i < length; i++) {
-        tmp = encode_table((unsigned int)cpoints[i], decimal, table, start);
+        if ((tmp = encode_table((unsigned int)cpoints[i], decimal, table, start)) == NULL)
+            goto ERR;
+
         if (i == 0) {
-            dest = (char*)malloc(sizeof(char) * (strlen(tmp) + strlen(delimiter) + 1));
+            if ((dest = (char*)malloc(sizeof(char) * (strlen(tmp) + strlen(delimiter) + 1))) == NULL)
+                goto ERR;
+
             strcpy(dest, tmp);
             strcat(dest, delimiter);
         } else {
-            dest = (char*)realloc(
-                    dest,
-                    sizeof(char) * (strlen(dest) + strlen(tmp) + strlen(delimiter) + 1)
-                    );
+            if ((dest = (char*)realloc(
+                            dest, sizeof(char) * (strlen(dest) + strlen(tmp) + strlen(delimiter) + 1)
+                        )) == NULL)
+                goto ERR;
+
             strcat(dest, tmp);
             strcat(dest, delimiter);
         }
@@ -366,6 +439,20 @@ char* encode_n_cipher(char* string, char* seed, char* delimiter)
     release_table(start);
 
     return dest;
+
+ERR:
+    if (dest != NULL) {
+        free(dest);
+        dest = NULL;
+    }
+    if (tmp != NULL) {
+        free(tmp);
+        tmp = NULL;
+    }
+    g_free(cpoints);
+    release_table(start);
+
+    return NULL;
 }
 
 char* decode_n_cipher(char* string, char* seed, char* delimiter)
@@ -388,17 +475,27 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     if ((decimal = create_table(seed, &table, &start)) == 0)
         return NULL;
 
-    strtmp = (char*)malloc(sizeof(char) * (strlen(string) + strlen(delimiter)));
-    strcpy(strtmp, string);
+    if ((strtmp = (char*)malloc(sizeof(char) * (strlen(string) + strlen(delimiter)))) == NULL)
+        goto ERR;
+    else
+        strcpy(strtmp, string);
 
-    buf = (gchar*)malloc(sizeof(gchar));
-    dest = (char*)malloc(sizeof(char) * x_bufl);
-    strcpy(dest, "");
+    if ((buf = (gchar*)malloc(sizeof(gchar))) == NULL)
+        goto ERR;
 
+    if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
+        goto ERR;
+    else
+        strcpy(dest, "");
+
+    /*
+     * decode
+     */
     for (token = mbstrtok(strtmp, delimiter); token; token = mbstrtok(NULL, delimiter)) {
         if (strlen(dest) < x_bufl) {
             x_bufl += BUFLEN;
-            dest = (char*)realloc(dest, sizeof(char) * x_bufl);
+            if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
+                goto ERR;
         }
 
         /* get ucs4 codepint */
@@ -423,4 +520,21 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     release_table(start);
 
     return dest;
+
+ERR:
+    if (strtmp != NULL) {
+        free(strtmp);
+        strtmp = NULL;
+    }
+    if (buf != NULL) {
+        free(buf);
+        buf = NULL;
+    }
+    if (dest != NULL) {
+        free(dest);
+        dest = NULL;
+    }
+    release_table(start);
+
+    return NULL;
 }
