@@ -1,3 +1,4 @@
+TARGET	= libncipher.so
 PREFIX	:= /usr/local
 CC	:= cc
 RM	:= rm
@@ -14,29 +15,27 @@ DEFCFLAGS = $(CFLAGS)		\
 DEFLDFLAGS = $(LDFLAGS)		\
 		$(PKGCFG)
 
-all: $(OBJS) libncipher.so sample
+all: $(OBJS) $(TARGET) sample
 
 sample: $(OBJS)
 	$(CC) $(DEFLDFLAGS) $^ -o $@
 
-%.o: %.c
+%.o: %.c %.h
 	$(CC) $(DEFCFLAGS) -c $< -o $@
 
-libncipher.so: n_cipher.c
+$(TARGET): n_cipher.c
 	$(CC) $(DEFLDFLAGS) -shared -fPIC $< -o $@
+
+install:
+	install -pd $(PREFIX)/lib
+	install -pd $(PREFIX)/include
+	install -pm 755 $(TARGET).so $(PREFIX)/lib/
+	install -pm 644 n_cipher.h $(PREFIX)/include/
 
 clean:
 	$(RM) -f $(OBJS)
-	$(RM) -f libncipher.so
+	$(RM) -f $(TARGET)
 	$(RM) -f sample
 
-install: libncipher.so
-	install -pd $(PREFIX)/lib
-	install -pd $(PREFIX)/include
-	install -pm 755 $< $(PREFIX)/lib
-	install -pm 644 n_cipher.h $(PREFIX)/include
-
-.PHONY:	all		\
-	sample		\
-	libncipher.so	\
-	clean		\
+.PHONY: all	\
+	clean
