@@ -12,7 +12,7 @@ $(TARGET).so: n_cipher.c n_cipher.h
 	$(CC) $(CFLAGS) $(DEFCFLAGS) $< -o $@
 
 sample: $(wildcard *.c)
-	$(CC) $(CFLAGS) $(PKGCFG) -lm $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ -lm $(PKGCFG)
 
 install-lib: $(TARGET).so
 	install -pd $(PREFIX)/lib

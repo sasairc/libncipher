@@ -1,0 +1,15 @@
+language: c
+compiler:
+    - gcc
+    - clang
+before_install:
+    - sudo apt-get update
+    - sudo apt-get -y install tree pkg-config libglib2.0-0 libglib2.0-dev
+script:
+    - export CC="$CC" TEST_PREFIX="`pwd`/test_prefix"
+    - source ./test.bash
+    - install_all "$CC" "$TEST_PREFIX"
+    - cleanup "$TEST_PREFIX"
+    - unset TEST_PREFIX
+    - make sample
+    - run_static_bin
