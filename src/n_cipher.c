@@ -31,45 +31,26 @@
 #include <math.h>
 #include <glib.h>
 
-int mbstrlen(char* src);
+int mbstrlen_without_byte(char* src);
 char* mbstrtok(char* str, char* delimiter);
 
-int mbstrlen(char* src)
+int mbstrlen_without_byte(char* src)
 {
-    int         i   = 0,
-                ch  = 0,
-                len = 0;
-    gunichar*   cpoints;
+    int i   = 0,
+        ch  = 0,
+        len = 0;
 
     setlocale(LC_CTYPE, LOCALE);
 
     while (src[i] != '\0') {
-        /* get string length */
         if ((ch = mblen(&src[i], MB_CUR_MAX)) < 0)
             return 0;
 
-        if (ch > 1) {
-            cpoints = g_utf8_to_ucs4_fast(&src[i], sizeof(src[i]), NULL);
-
-            /*
-             * multi byte
-             * true : hankaku kana
-             * false: other
-             */
-            if (cpoints[0] >= 0xff65 && cpoints[0] <= 0xff9f) {
-                len++;
-            } else {
-                len += 2;
-            }
-
-            g_free(cpoints);
-        } else {
-            len++;
-        }
+        len++;
         i += ch;
     }
 
-    return len;
+    return len - 1;
 }
 
 char* mbstrtok(char* str, char* delimiter)
@@ -100,7 +81,7 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     list_t*     table   = NULL,
           *     start   = NULL;
 
-    if (mbstrlen(seed) < 2 || mbstrlen(seed) > 36)
+    if (mbstrlen_without_byte(seed) < 2 || mbstrlen_without_byte(seed) > 36)
         return 0;
 
     if ((table = malloc(sizeof(list_t))) == NULL)
@@ -277,92 +258,46 @@ ERR:
 
 int decode_table(char* string, int base, list_t* table, list_t* start)
 {
-    if (string == NULL || string == NULL || strlen(string) == 0)
-        return 0;
-
     int     i       = 0,
-            j       = 0,
+            digit   = 0,
+            byte    = 0,
             sum     = 0,
-            code    = 0,
-            y_bufl  = BUFLEN;
-    char**  tmp     = NULL;
+            code    = 0;
 
-    if ((tmp = (char**)malloc(sizeof(char*) * y_bufl)) == NULL)
-        return 0;
-
+    digit = mbstrlen_without_byte(string);
     while (*string != '\0') {
-        if (i > y_bufl) {
-            y_bufl += BUFLEN;
-            if ((tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
-                goto ERR;
-        }
-
+        i = byte = 0;
         code = (unsigned char)*string;
-        if (code < 0x80) {
-            if ((tmp[i] = (char*)malloc(sizeof(char) * 2)) == NULL)
-                goto ERR;
 
-            sprintf(tmp[i], "%c",
-                    *string);
-            i++;
-            string += 1;
+        if (code < 0x80) {
+            byte = 1;
         } else if (code < 0xC0) {
             string += 1;
+            continue;
         } else if (code < 0xE0) {
-            if ((tmp[i] = (char*)malloc(sizeof(char) * 3)) == NULL)
-                goto ERR;
-
-            sprintf(tmp[i], "%c%c",
-                    *string, *(string + 1));
-            i++;
-            string += 2;
+            byte = 2;
         } else if (code < 0xF0) {
-            if ((tmp[i] = (char*)malloc(sizeof(char) * 4)) == NULL)
-                goto ERR;
-
-            sprintf(tmp[i], "%c%c%c",
-                    *string, *(string + 1), *(string + 2));
-            i++;
-            string += 3;
+            byte = 3;
         } else {
-            if ((tmp[i] = (char*)malloc(sizeof(char) * 5)) == NULL)
-                goto ERR;
-
-            sprintf(tmp[i], "%c%c%c%c",
-                    *string, *(string + 1), *(string + 2), *(string + 3));
-            i++;
-            string += 4;
+            byte = 4;
         }
-    }
-    i -= 1;
 
-    for (j = 0; i >= 0; i--, j++) {
         table = start;
+        while (table->next != NULL) {
+            while (*(string + i) == *(table->character + i))
+                i++;
 
-        while(strstr(tmp[i], table->character) == NULL && table->next != NULL)
-            table = table->next;
-
-        sum += table->number * (int)pow((double)base, (double)j);
-        free(tmp[i]);
+            if (i >= byte)
+                break;
+            else
+                table = table->next;
+        }
+        sum += table->number * (int)pow((double)base, (double)digit);
+        string += byte;
+        digit--;
     }
-    free(tmp);
 
     return sum;
-
-ERR:
-    while (i >= 0) {
-        if (tmp[i] != NULL) {
-            free(tmp[i]);
-            tmp[i] = NULL;
-        }
-        i--;
-    }
-    if (tmp != NULL) {
-        free(tmp);
-        tmp = NULL;
-    }
-    
-    return 0;
 }
 
 void release_table(list_t* table)
