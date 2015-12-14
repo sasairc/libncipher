@@ -27,8 +27,8 @@
 
 #define LOCALE      ""
 
-#define SEED        "にゃんぱす"   /* default seed */
-#define DELIMITER   "〜"           /* default delimiter */
+#define SEED        "にゃんぱす\0" /* default seed */
+#define DELIMITER   "〜\0"         /* default delimiter */
 
 #define BUFLEN      256             /* default buffer length */
 

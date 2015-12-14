@@ -163,7 +163,7 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         return NULL;
 
     while (cpoint > 0) {
-        if (y > y_bufl) {
+        if (y >= y_bufl) {
             y_bufl += BUFLEN;
             if ((tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
                 goto ERR;
@@ -279,8 +279,8 @@ char* encode_n_cipher(char* string, char* seed, char* delimiter)
         return NULL;
 
     int         i       = 0,
-                decimal = 0,
-                x_bufl  = BUFLEN;
+                x_bufl  = BUFLEN,
+                decimal = 0;
     char*       dest    = NULL,
         *       tmp     = NULL;
 
@@ -300,26 +300,27 @@ char* encode_n_cipher(char* string, char* seed, char* delimiter)
     /* convert string to ucs4 */
     cpoints = g_utf8_to_ucs4_fast(string, -1, NULL);
 
+    /* allocate memory */
+    if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
+        goto ERR;
+    else
+        strcpy(dest, "\0");
+
     /* convert ucs4 to table */
     for (i = 0; i < length; i++) {
         if ((tmp = encode_table((unsigned int)cpoints[i], decimal, table, start)) == NULL)
             goto ERR;
 
-        if (i == 0) {
-            if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
+        /* reallocate memory */
+        if (x_bufl < strlen(dest) + strlen(tmp) + strlen(delimiter) + 1) {
+            x_bufl += BUFLEN;
+            if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
-
-            strcpy(dest, tmp);
-            strcat(dest, delimiter);
-        } else {
-            if (x_bufl < strlen(dest) + strlen(tmp) + strlen(delimiter)) {
-                x_bufl += BUFLEN;
-                if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
-                    goto ERR;
-            }
-            strcat(dest, tmp);
-            strcat(dest, delimiter);
         }
+
+        /* concat string */
+        strcat(dest, tmp);
+        strcat(dest, delimiter);
 
         if (tmp != NULL) {
             free(tmp);
@@ -371,8 +372,8 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
 
     if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
         goto ERR;
-
-    strcpy(dest, "");
+    else
+        strcpy(dest, "\0");
 
     /*
      * decode
@@ -385,7 +386,7 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
         c_size = g_unichar_to_utf8(cpoint, buf);
 
         /* concat character */
-        if (x_bufl < strlen(dest) + strlen(buf)) {
+        if (x_bufl < strlen(dest) + strlen(buf) + 1) {
             x_bufl += BUFLEN;
             if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
