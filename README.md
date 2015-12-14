@@ -24,14 +24,20 @@ $ make
 ```c
 #include <n_cipher.h>
 
-#define SEED       "にゃんぱす"
-#define DELIMITER  "〜"
+#define SEED        "にゃんぱす\0"
+#define DELIMITER   "〜\0"
 
 char* encode_n_cipher(char* string, char* seed, char* delimiter);
 char* decode_n_cipher(char* string, char* seed, char* delimiter);
 ```
 
 エラー時には`NULL`を返却します。
+
+
+## Bug
+
+* encode_n_cipher()のシード値に4文字指定するとコケる #10
+
 
 ## License
 
