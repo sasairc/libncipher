@@ -163,7 +163,7 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         return NULL;
 
     while (cpoint > 0) {
-        if (y >= y_bufl) {
+        if (y_bufl <= y) {
             y_bufl += BUFLEN;
             if ((tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
                 goto ERR;
@@ -182,7 +182,7 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         y++;
     }
 
-    if ((dest = (char*)malloc(sizeof(char) * size)) == NULL)
+    if ((dest = (char*)malloc(sizeof(char) * (size + 1))) == NULL)
         goto ERR;
     else
         y -= 2;
@@ -273,7 +273,7 @@ void release_table(list_t* table)
 /*
  * main processing on n_cipher
  */
-char* encode_n_cipher(char* string, char* seed, char* delimiter)
+char* encode_n_cipher(const char* string, char* seed, char* delimiter)
 {
     if (string == NULL || seed == NULL || delimiter == NULL)
         return NULL;
@@ -312,7 +312,7 @@ char* encode_n_cipher(char* string, char* seed, char* delimiter)
             goto ERR;
 
         /* reallocate memory */
-        if (x_bufl < strlen(dest) + strlen(tmp) + strlen(delimiter) + 1) {
+        if (x_bufl <= strlen(dest) + strlen(tmp) + strlen(delimiter) + 1) {
             x_bufl += BUFLEN;
             if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
@@ -349,12 +349,13 @@ ERR:
     return NULL;
 }
 
-char* decode_n_cipher(char* string, char* seed, char* delimiter)
+char* decode_n_cipher(const char* string, char* seed, char* delimiter)
 {
     int         decimal = 0,
                 c_size  = 0,
                 x_bufl  = BUFLEN;
-    char*       token   = NULL,
+    char*       strtmp  = NULL,
+        *       token   = NULL,
         *       dest    = NULL;
 
     gunichar    cpoint  = 0;
@@ -367,6 +368,7 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     if ((decimal = create_table(seed, &table, &start)) == 0)
         return NULL;
 
+    /* allocate memory */
     if ((buf = (gchar*)malloc(sizeof(gchar))) == NULL)
         goto ERR;
 
@@ -375,10 +377,15 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     else
         strcpy(dest, "\0");
 
+    if ((strtmp = (char*)malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
+        goto ERR;
+    else
+        strcpy(strtmp, string);
+
     /*
      * decode
      */
-    for (token = mbstrtok(string, delimiter); token; token = mbstrtok(NULL, delimiter)) {
+    for (token = mbstrtok(strtmp, delimiter); token; token = mbstrtok(NULL, delimiter)) {
         /* get ucs4 codepint */
         cpoint = (gunichar)decode_table(token, decimal, table, start);
 
@@ -386,7 +393,7 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
         c_size = g_unichar_to_utf8(cpoint, buf);
 
         /* concat character */
-        if (x_bufl < strlen(dest) + strlen(buf) + 1) {
+        if (x_bufl <= strlen(dest) + strlen(buf) + 1) {
             x_bufl += BUFLEN;
             if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
@@ -397,6 +404,10 @@ char* decode_n_cipher(char* string, char* seed, char* delimiter)
     /* release memory */
     if (buf != NULL) {
         free(buf);
+        buf = NULL;
+    }
+    if (strtmp != NULL) {
+        free(strtmp);
         buf = NULL;
     }
     release_table(start);
@@ -411,6 +422,10 @@ ERR:
     if (dest != NULL) {
         free(dest);
         dest = NULL;
+    }
+    if (strtmp != NULL) {
+        free(strtmp);
+        buf = NULL;
     }
     release_table(start);
 
