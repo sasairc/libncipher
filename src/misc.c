@@ -1,6 +1,6 @@
 /*
  * libncipher - n_cipher library for C.
- *
+ * 
  * Copyright (c) 2015 sasairc
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,13 +22,47 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef N_CIPHER_H
-#define N_CIPHER_H
+#include "./misc.h"
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
 
-#define SEED        "にゃんぱす\0" /* default seed */
-#define DELIMITER   "〜\0"         /* default delimiter */
+int mbstrlen_without_byte(char* src)
+{
+    int i   = 0,
+        ch  = 0,
+        len = 0;
 
-extern char* encode_n_cipher(const char* string, char* seed, char* delimiter);
-extern char* decode_n_cipher(const char* string, char* seed, char* delimiter);
+    setlocale(LC_CTYPE, LOCALE);
 
-#endif
+    while (src[i] != '\0') {
+        if ((ch = mblen(&src[i], MB_CUR_MAX)) < 0)
+            return 0;
+
+        len++;
+        i += ch;
+    }
+
+    return len - 1;
+}
+
+char* mbstrtok(char* str, char* delimiter)
+{
+    static  char*   ptr = NULL;
+            char*   bdy = NULL;
+
+    if (!str)
+        str = ptr;
+
+    if (!str)
+        return NULL;
+
+    if ((bdy = strstr(str, delimiter)) != NULL) {
+        *bdy = '\0';
+        ptr = bdy + strlen(delimiter);
+    } else {
+        ptr = NULL;
+    }
+
+    return str;
+}
