@@ -22,13 +22,18 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef N_CIPHER_H
-#define N_CIPHER_H
+#ifndef TABLE_H
+#define TABLE_H
 
-#define SEED        "にゃんぱす\0" /* default seed */
-#define DELIMITER   "〜\0"         /* default delimiter */
+typedef struct _LIST_T {
+    int     number;
+    char*   character;
+    struct  _LIST_T*    next;
+} list_t;
 
-extern char* encode_n_cipher(const char* string, char* seed, char* delimiter);
-extern char* decode_n_cipher(const char* string, char* seed, char* delimiter);
+extern int create_table(char* seed, list_t** dest_table, list_t** dest_start);
+extern char* encode_table(int cpoint, int base, list_t* table, list_t* start);
+extern int decode_table(char* string, int base, list_t* table, list_t* start);
+extern void release_table(list_t* table);
 
 #endif

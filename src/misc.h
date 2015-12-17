@@ -1,6 +1,6 @@
 /*
  * libncipher - n_cipher library for C.
- *
+ * 
  * Copyright (c) 2015 sasairc
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,13 +22,10 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef N_CIPHER_H
-#define N_CIPHER_H
+#ifndef MISC_H
+#define MISC_H
 
-#define SEED        "にゃんぱす\0" /* default seed */
-#define DELIMITER   "〜\0"         /* default delimiter */
-
-extern char* encode_n_cipher(const char* string, char* seed, char* delimiter);
-extern char* decode_n_cipher(const char* string, char* seed, char* delimiter);
+extern int mbstrlen_without_byte(char* src);
+extern char* mbstrtok(char* str, char* delimiter);
 
 #endif

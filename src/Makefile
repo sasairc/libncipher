@@ -2,39 +2,53 @@
 #    Makefile for libncipher
 #
 
+TARGET	= libncipher.so
+SRCS	= $(wildcard *.c)
+OBJS	= $(SRCS:.c=.o)
+
+LIBS	= -lm
 PKGCFG	= `pkg-config --cflags --libs glib-2.0` 
 
-DEFCFLAGS = -shared -fPIC -lm $(PKGCFG)
+DEFCFLAGS = -DBUFLEN=$(BUFLEN)		\
+		-DLOCALE=\"$(LOCALE)\"	\
+		-fPIC			\
+	    	$(LIBS)			\
+		$(PKGCFG)
 
-all: $(TARGET).so
+DEFLDFLAGS = -shared		\
+		-fPIC		\
+		$(LIBS)		\
+		$(PKGCFG)
 
-$(TARGET).so: n_cipher.c n_cipher.h
-ifeq ($(CMDLINE), 0)
-	@echo "  CC      $@"
-	@$(CC) $(CFLAGS) $(DEFCFLAGS) $< -o $@
-else
-	$(CC) $(CFLAGS) $(DEFCFLAGS) $< -o $@
-endif
+all: $(TARGET)
 
-sample: $(wildcard *.c)
+$(TARGET): $(OBJS)
 ifeq ($(CMDLINE), 0)
 	@echo "  BUILD   $@"
-	@$(CC) $(CFLAGS) $^ -o $@ -lm $(PKGCFG)
+	@$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
 else
-	$(CC) $(CFLAGS) $^ -o $@ -lm $(PKGCFG)
+	$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
 endif
 
-install-lib: $(TARGET).so
+%.o: %.c %.h
+ifeq ($(CMDLINE), 0)
+	@echo "  CC      $@"
+	@$(CC) $(CFLAGS) -c $< -o $@ $(DEFCFLAGS)
+else
+	$(CC) $(CFLAGS) -c $< -o $@ $(DEFCFLAGS)
+endif
+
+install-lib: $(TARGET)
 	install -pd $(PREFIX)/lib
-	install -pm 755 $(TARGET).so $(PREFIX)/lib/
+	install -pm 755 $(TARGET) $(PREFIX)/lib/
 
 install-header: n_cipher.h
 	install -pd $(PREFIX)/include
 	install -pm 644 n_cipher.h $(PREFIX)/include/
 
 clean:
-	$(RM) -f $(TARGET).so
-	$(RM) -f sample
+	-$(RM) -f $(TARGET)
+	-$(RM) -f $(OBJS)
 
 .PHONY: all		\
 	install-lib	\

@@ -21,8 +21,8 @@ function install_all() {
 function run_static_bin() {
 	echo "*** run ***"
 
-	local A="おうどん"
-	local B=`echo $A | ./src/sample -e | ./src/sample -d`
+	local A="おいしいおうどん"
+	local B=`echo $A | ./sample/sample -e | ./sample/sample -d`
 
 	test $A = $B
 	

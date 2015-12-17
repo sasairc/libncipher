@@ -11,5 +11,5 @@ script:
     - install_all "$CC" "$TEST_PREFIX"
     - cleanup "$TEST_PREFIX"
     - unset TEST_PREFIX
-    - make sample
+    - make
     - run_static_bin

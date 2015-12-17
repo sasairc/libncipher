@@ -2,7 +2,7 @@
  * sample.c
  */
 
-#include "./n_cipher.h"
+#include "../src/n_cipher.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
