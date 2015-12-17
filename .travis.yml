@@ -9,6 +9,7 @@ script:
     - export CC="$CC" TEST_PREFIX="`pwd`/test_prefix"
     - source ./test.bash
     - install_all "$CC" "$TEST_PREFIX"
-    - run_static_bin
     - cleanup "$TEST_PREFIX"
     - unset TEST_PREFIX
+    - make
+    - run_static_bin
