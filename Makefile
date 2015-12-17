@@ -8,6 +8,7 @@ MAKE	:= make
 CC	:= cc
 RM	:= rm
 CFLAGS	:= -O2 -g
+CMDLINE	:= 0
 export
 
 all sample install-lib install-header clean:
