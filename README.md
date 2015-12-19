@@ -1,7 +1,9 @@
 libncipher
 ===
 
+[![version](http://img.shields.io/github/tag/sasairc/libncipher.svg?style=flat&label=version)](https://github.com/sasairc/libncipher/releases)
 [![license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://raw.githubusercontent.com/sasairc/libncipher/master/LICENSE)
+[![issues](http://img.shields.io/github/issues/sasairc/libncipher.svg?style=flat)](https://github.com/sasairc/libncipher/issues)
 [![build](https://img.shields.io/travis/sasairc/libncipher.svg?style=flat)](https://travis-ci.org/sasairc/libncipher)
 
 C/C++向け[n_cipher](https://github.com/844196/n_cipher)（にゃんぱす暗号）ライブラリ。
@@ -94,6 +96,11 @@ encode: うどおどおおどどそばどおんんどんおおそばうううん
 decode: 戊辰War
 strcmp: 0
 ```
+
+
+## Original
+
+[844196/n_cipher](https://github.com/844196/n_cipher) - for Ruby
 
 
 ## License
