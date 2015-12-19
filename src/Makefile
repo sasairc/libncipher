@@ -2,27 +2,29 @@
 #    Makefile for libncipher
 #
 
-TARGET	= libncipher.so
-SRCS	= $(wildcard *.c)
-OBJS	= $(SRCS:.c=.o)
+VERSION    = 1
+PATCHLEVEL = 0
+SUBLEVEL   = 0
+LINKERNAME = libncipher.so
+SONAME     = $(LINKERNAME).$(VERSION)
+REALNAME   = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
 
-LIBS	= -lm
-PKGCFG	= `pkg-config --cflags --libs glib-2.0` 
+SRCS       = $(wildcard *.c)
+OBJS       = $(SRCS:.c=.o)
+LIBS       = -lm `pkg-config --cflags --libs glib-2.0` 
 
-DEFCFLAGS = -DBUFLEN=$(BUFLEN)		\
+DEFCFLAGS  = -DBUFLEN=$(BUFLEN)		\
 		-DLOCALE=\"$(LOCALE)\"	\
 		-fPIC			\
-	    	$(LIBS)			\
-		$(PKGCFG)
+	    	$(LIBS)
 
-DEFLDFLAGS = -shared		\
-		-fPIC		\
-		$(LIBS)		\
-		$(PKGCFG)
+DEFLDFLAGS = -shared			\
+		-Wl,-soname=$(SONAME)	\
+		$(LIBS)	
 
-all: $(TARGET)
+all: $(REALNAME)
 
-$(TARGET): $(OBJS)
+$(REALNAME): $(OBJS)
 ifeq ($(CMDLINE), 0)
 	@echo "  BUILD   $@"
 	@$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
@@ -38,16 +40,18 @@ else
 	$(CC) $(CFLAGS) -c $< -o $@ $(DEFCFLAGS)
 endif
 
-install-lib: $(TARGET)
-	install -pd $(PREFIX)/lib
-	install -pm 755 $(TARGET) $(PREFIX)/lib/
+install-lib: $(REALNAME)
+	install -pd $(LIBDIR)
+	install -pm 755 $(REALNAME) $(LIBDIR)/
+	ln -sf $(LIBDIR)/$(REALNAME) $(LIBDIR)/$(SONAME)
+	ln -sf $(LIBDIR)/$(REALNAME) $(LIBDIR)/$(LINKERNAME)
 
 install-header: n_cipher.h
-	install -pd $(PREFIX)/include
-	install -pm 644 n_cipher.h $(PREFIX)/include/
+	install -pd $(INCLUDEDIR)
+	install -pm 644 n_cipher.h $(INCLUDEDIR)/
 
 clean:
-	-$(RM) -f $(TARGET)
+	-$(RM) -f $(REALNAME)
 	-$(RM) -f $(OBJS)
 
 .PHONY: all		\

@@ -2,15 +2,17 @@
 #    Makefile for libncipher
 #
 
-PREFIX	:= /usr/local
-MAKE	:= make
-CC	:= cc
-RM	:= rm
-CFLAGS	:= -O2 -g
-LDFLAGS	:=
-BUFLEN	:= 256
-LOCALE	:=
-CMDLINE	:= 0
+PREFIX     := /usr/local
+LIBDIR     := $(PREFIX)/lib
+INCLUDEDIR := $(PREFIX)/include
+MAKE       := make
+CC         := cc
+RM         := rm
+CFLAGS     := -O2 -g
+LDFLAGS    :=
+BUFLEN     := 256
+LOCALE     :=
+CMDLINE    := 0
 export
 
 all clean:
