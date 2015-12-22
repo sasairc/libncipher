@@ -36,8 +36,11 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
         return NULL;
 
     int         i       = 0,
-                x_bufl  = BUFLEN,
                 decimal = 0;
+
+    size_t      x_bufl  = BUFLEN,
+                delmlen = 0;
+
     char*       dest    = NULL,
         *       tmp     = NULL;
 
@@ -63,13 +66,15 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
     else
         strcpy(dest, "\0");
 
+    delmlen = strlen(delimiter);
+
     /* convert ucs4 to table */
     for (i = 0; i < length; i++) {
         if ((tmp = encode_table((unsigned int)cpoints[i], decimal, table, start)) == NULL)
             goto ERR;
 
         /* reallocate memory */
-        if (x_bufl <= strlen(dest) + strlen(tmp) + strlen(delimiter) + 1) {
+        if (x_bufl <= strlen(dest) + strlen(tmp) + delmlen) {
             x_bufl += BUFLEN;
             if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
@@ -108,9 +113,12 @@ ERR:
 
 char* decode_n_cipher(const char* string, char* seed, char* delimiter)
 {
-    int         decimal = 0,
-                c_size  = 0,
-                x_bufl  = BUFLEN;
+    int         decimal = 0;
+
+    size_t      x_bufl  = BUFLEN,
+                destlen = 0,
+                blklen  = 0;
+
     char*       strtmp  = NULL,
         *       token   = NULL,
         *       dest    = NULL;
@@ -137,7 +145,7 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
     if ((strtmp = (char*)malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
         goto ERR;
     else
-        strcpy(strtmp, string);
+        memcpy(strtmp, string, strlen(string));
 
     /*
      * decode
@@ -147,15 +155,16 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
         cpoint = (gunichar)decode_table(token, decimal, table, start);
 
         /* convert ucs4 to character */
-        c_size = g_unichar_to_utf8(cpoint, buf);
+        blklen = g_unichar_to_utf8(cpoint, buf);
 
         /* concat character */
-        if (x_bufl <= strlen(dest) + strlen(buf) + 1) {
+        if (x_bufl <= destlen + blklen + 1) {
             x_bufl += BUFLEN;
             if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
         }
-        sprintf(dest, "%s%.*s", dest, c_size, buf);
+        memcpy(dest + destlen , buf, blklen);
+        destlen += blklen;
     }
 
     /* release memory */
