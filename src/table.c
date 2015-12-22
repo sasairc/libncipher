@@ -32,8 +32,9 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
 {
     int         i       = 0,
                 j       = 0,
-                byte    = 0,
                 code    = 0;
+    size_t      byte    = 0;
+
     list_t*     table   = NULL,
           *     start   = NULL;
 
@@ -101,9 +102,11 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         return NULL;
 
     int     y       = 0,
-            fragmnt = 0,
-            y_bufl  = BUFLEN;
-    size_t  size    = 0;
+            fragmnt = 0;
+
+    size_t  y_bufl  = BUFLEN,
+            destlen = 0;
+
     char*   dest    = NULL,
         **  tmp     = NULL;
 
@@ -124,13 +127,13 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
             table = table->next;
 
         tmp[y] = table->character;
-        size += strlen(table->character);
+        destlen += strlen(table->character);
 
         cpoint /= base;
         y++;
     }
 
-    if ((dest = (char*)malloc(sizeof(char) * (size + 1))) == NULL)
+    if ((dest = (char*)malloc(sizeof(char) * (destlen + 1))) == NULL)
         goto ERR;
     else
         y -= 2;
@@ -161,9 +164,10 @@ int decode_table(char* string, int base, list_t* table, list_t* start)
 {
     int     i       = 0,
             digit   = 0,
-            byte    = 0,
-            sum     = 0,
             code    = 0;
+
+    size_t  byte    = 0,
+            sum     = 0;
 
     digit = mbstrlen_without_byte(string);
     while (*string != '\0') {
