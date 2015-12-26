@@ -30,6 +30,42 @@
 #include <string.h>
 #include <glib.h>
 
+int check_seed_overlap_n_cipher(char* seed)
+{
+    int         i       = 0,
+                j       = 0,
+                ret     = 0,
+                decimal = 0;
+
+    list_t*     t1      = NULL,
+          *     t2      = NULL,
+          *     start   = NULL;
+
+    if (mbstrlen_without_byte(seed) < 1)
+        return -1;
+
+    if ((decimal = create_table(seed, &t1, &start)) == 0)
+        return -2;
+
+    t1 = start;
+    while (i < decimal) {
+        j = 0;
+        t2 = start;
+        while (j < decimal) {
+            if (strcmp(t1->character, t2->character) == 0)
+                ret++;
+
+            t2 = t2->next;
+            j++;
+        }
+        t1 = t1->next;
+        i++;
+    }
+    free(start);
+
+    return ret -= decimal;
+}
+
 char* encode_n_cipher(const char* string, char* seed, char* delimiter)
 {
     if (string == NULL || seed == NULL || delimiter == NULL)
