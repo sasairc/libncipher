@@ -34,6 +34,7 @@ seed値は128文字まで確認済みです。
 #define SEED        "にゃんぱす\0"
 #define DELIMITER   "〜\0"
 
+int check_seed_overlap_n_cipher(char* seed);
 char* encode_n_cipher(const char* string, char* seed, char* delimiter);
 char* decode_n_cipher(const char* string, char* seed, char* delimiter);
 ```
@@ -71,13 +72,16 @@ int main(void)
     free(dec);
 
     /* manually specifies, seed and delimiter */
-    if ((enc = encode_n_cipher(msg, "おうどん", "そば")) == NULL)
+    if (check_seed_overlap_n_cipher("おうどん") != 0)
         return 3;
+
+    if ((enc = encode_n_cipher(msg, "おうどん", "そば")) == NULL)
+        return 4;
     
     if ((dec = decode_n_cipher(enc, "おうどん", "そば")) == NULL) {
         free(enc);
 
-        return 4;
+        return 5;
     }
     fprintf(stdout, "origin: %s\nencode: %s\ndecode: %s\nstrcmp: %d\n",
             msg, enc, dec, strcmp(msg, dec));
