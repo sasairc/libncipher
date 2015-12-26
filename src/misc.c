@@ -29,9 +29,9 @@
 
 int mbstrlen_without_byte(char* src)
 {
-    int i   = 0,
-        ch  = 0,
-        len = 0;
+    int     i   = 0,
+            ch  = 0,
+            len = 0;
 
     setlocale(LC_CTYPE, LOCALE);
 

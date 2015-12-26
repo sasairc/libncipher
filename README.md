@@ -6,7 +6,8 @@ libncipher
 [![issues](http://img.shields.io/github/issues/sasairc/libncipher.svg?style=flat)](https://github.com/sasairc/libncipher/issues)
 [![build](https://img.shields.io/travis/sasairc/libncipher.svg?style=flat)](https://travis-ci.org/sasairc/libncipher)
 
-C/C++向け[n_cipher](https://github.com/844196/n_cipher)（にゃんぱす暗号）ライブラリ。
+C/C++向け[n_cipher](https://github.com/844196/n_cipher)（にゃんぱす暗号）ライブラリ。	
+seed値は128文字まで確認済みです。
 
 
 ## Requirements

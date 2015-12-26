@@ -128,7 +128,7 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
 
     list_t*     table   = NULL,
           *     start   = NULL;
-
+ 
     /* convert seed to table */
     if ((decimal = create_table(seed, &table, &start)) == 0)
         return NULL;

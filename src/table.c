@@ -38,7 +38,7 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     list_t*     table   = NULL,
           *     start   = NULL;
 
-    if (mbstrlen_without_byte(seed) < 2 || mbstrlen_without_byte(seed) > 36)
+    if (mbstrlen_without_byte(seed) < 1)
         return 0;
 
     if ((table = malloc(sizeof(list_t))) == NULL)
