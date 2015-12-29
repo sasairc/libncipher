@@ -21,10 +21,9 @@ function install_all() {
 function run_static_bin() {
 	echo "*** run ***"
 
-	local A="おいしいおうどん"
-	local B=`echo $A | ./sample/sample -e | ./sample/sample -d`
+	wget https://raw.githubusercontent.com/sasairc/yasuna/master/quotes/yasuna-quotes
+	cat yasuna-quotes | ./sample/sample -e | ./sample/sample -d > dest.txt
+	diff -c yasuna-quotes dest.txt
 
-	test $A = $B
-	
 	return $?
 }
