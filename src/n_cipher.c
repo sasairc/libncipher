@@ -63,7 +63,7 @@ int check_seed_overlap_n_cipher(char* seed)
     }
     free(start);
 
-    return ret -= decimal;
+    return ret - decimal;
 }
 
 char* encode_n_cipher(const char* string, char* seed, char* delimiter)
