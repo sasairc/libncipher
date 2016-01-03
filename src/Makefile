@@ -3,7 +3,7 @@
 #
 
 VERSION    = 1
-PATCHLEVEL = 1
+PATCHLEVEL = 2
 SUBLEVEL   = 0
 LINKERNAME = libncipher.so
 SONAME     = $(LINKERNAME).$(VERSION)
