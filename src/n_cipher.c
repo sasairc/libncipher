@@ -75,7 +75,9 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
                 decimal = 0;
 
     size_t      x_bufl  = BUFLEN,
-                delmlen = 0;
+                delmlen = 0,
+                destlen = 0,
+                blklen  = 0;
 
     char*       dest    = NULL,
         *       tmp     = NULL;
@@ -100,7 +102,7 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
     if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
         goto ERR;
     else
-        strcpy(dest, "\0");
+        memset(dest, '\0', x_bufl);
 
     delmlen = strlen(delimiter);
 
@@ -109,16 +111,21 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
         if ((tmp = encode_table((unsigned int)cpoints[i], decimal, table, start)) == NULL)
             goto ERR;
 
+        destlen = strlen(dest);
+        blklen = strlen(tmp);
+
         /* reallocate memory */
-        if (x_bufl <= strlen(dest) + strlen(tmp) + delmlen) {
+        if (x_bufl <= destlen + blklen + delmlen) {
             x_bufl += BUFLEN;
             if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
         }
 
         /* concat string */
-        strcat(dest, tmp);
-        strcat(dest, delimiter);
+        memcpy(dest + destlen, tmp, blklen + 1);
+        destlen += blklen;
+        memcpy(dest + destlen, delimiter, delmlen + 1);
+        destlen += delmlen;
 
         if (tmp != NULL) {
             free(tmp);
@@ -176,7 +183,7 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
     if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
         goto ERR;
     else
-        strcpy(dest, "\0");
+        memset(dest, '\0', x_bufl);
 
     if ((strtmp = (char*)malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
         goto ERR;
