@@ -27,5 +27,6 @@
 
 extern int mbstrlen_without_byte(char* src);
 extern char* mbstrtok(char* str, char* delimiter);
+extern int strcmp_lite(const char* str1, const char* str2);
 
 #endif
