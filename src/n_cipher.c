@@ -52,7 +52,7 @@ int check_seed_overlap_n_cipher(char* seed)
         j = 0;
         t2 = start;
         while (j < decimal) {
-            if (strcmp(t1->character, t2->character) == 0)
+            if (strcmp_lite(t1->character, t2->character) == 0)
                 ret++;
 
             t2 = t2->next;
@@ -99,7 +99,8 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
     cpoints = g_utf8_to_ucs4_fast(string, -1, NULL);
 
     /* allocate memory */
-    if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
+    if ((dest = (char*)
+                malloc(sizeof(char) * x_bufl)) == NULL)
         goto ERR;
     else
         memset(dest, '\0', x_bufl);
@@ -117,7 +118,8 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
         /* reallocate memory */
         if (x_bufl <= destlen + blklen + delmlen) {
             x_bufl += BUFLEN;
-            if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
+            if ((dest = (char*)
+                        realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
         }
 
@@ -177,15 +179,18 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
         return NULL;
 
     /* allocate memory */
-    if ((buf = (gchar*)malloc(sizeof(gchar))) == NULL)
+    if ((buf = (gchar*)
+                malloc(sizeof(gchar))) == NULL)
         goto ERR;
 
-    if ((dest = (char*)malloc(sizeof(char) * x_bufl)) == NULL)
+    if ((dest = (char*)
+                malloc(sizeof(char) * x_bufl)) == NULL)
         goto ERR;
     else
         memset(dest, '\0', x_bufl);
 
-    if ((strtmp = (char*)malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
+    if ((strtmp = (char*)
+                malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
         goto ERR;
     else
         memcpy(strtmp, string, strlen(string));
@@ -203,7 +208,8 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
         /* concat character */
         if (x_bufl <= destlen + blklen + 1) {
             x_bufl += BUFLEN;
-            if ((dest = (char*)realloc(dest, sizeof(char) * x_bufl)) == NULL)
+            if ((dest = (char*)
+                        realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
         }
         memcpy(dest + destlen , buf, blklen);
