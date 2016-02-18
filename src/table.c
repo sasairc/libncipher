@@ -68,7 +68,8 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
         table = table->next;
         table->number = i;
 
-        if ((table->character = (char*)malloc(sizeof(char) * (byte + 1))) == NULL)
+        if ((table->character = (char*)
+                    malloc(sizeof(char) * (byte + 1))) == NULL)
             goto ERR;
 
         j = 0;
@@ -110,13 +111,15 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     char*   dest    = NULL,
         **  tmp     = NULL;
 
-    if ((tmp = (char**)malloc(sizeof(char*) * y_bufl)) == NULL)
+    if ((tmp = (char**)
+                malloc(sizeof(char*) * y_bufl)) == NULL)
         return NULL;
 
     while (cpoint > 0) {
         if (y_bufl <= y) {
             y_bufl += BUFLEN;
-            if ((tmp = (char**)realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
+            if ((tmp = (char**)
+                        realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
                 goto ERR;
         }
 
@@ -133,7 +136,8 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         y++;
     }
 
-    if ((dest = (char*)malloc(sizeof(char) * (destlen + 1))) == NULL)
+    if ((dest = (char*)
+                malloc(sizeof(char) * (destlen + 1))) == NULL)
         goto ERR;
     else
         y -= 2;
