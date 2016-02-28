@@ -41,7 +41,8 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     if (mbstrlen_without_byte(seed) < 1)
         return 0;
 
-    if ((table = malloc(sizeof(list_t))) == NULL)
+    if ((table = (list_t*)
+                malloc(sizeof(list_t))) == NULL)
         return 0;
     else
         start = table;
@@ -62,7 +63,8 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
             byte = 4;
         }
 
-        if ((table->next = malloc(sizeof(list_t))) == NULL)
+        if ((table->next = (list_t*)
+                    malloc(sizeof(list_t))) == NULL)
             goto ERR;
 
         table = table->next;
