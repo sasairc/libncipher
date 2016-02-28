@@ -30,22 +30,34 @@
 #include <string.h>
 #include <glib.h>
 
-int check_seed_overlap_n_cipher(char* seed)
+int check_seed_overlap_n_cipher(const char* seed)
 {
     int         i       = 0,
                 j       = 0,
                 ret     = 0,
                 decimal = 0;
 
+    char*       tmp     = NULL;
+
     list_t*     t1      = NULL,
           *     t2      = NULL,
           *     start   = NULL;
 
-    if (mbstrlen_without_byte(seed) < 1)
+    if (mbstrlen_without_byte((char*)seed) < 1)
         return -1;
 
-    if ((decimal = create_table(seed, &t1, &start)) == 0)
+    if ((tmp = (char*)
+                malloc(sizeof(char) * (strlen(seed) + 1))) == NULL)
         return -2;
+
+    memcpy(tmp, seed, strlen(seed));
+    tmp[strlen(tmp)] = '\0';
+
+    if ((decimal = create_table(tmp, &t1, &start)) == 0) {
+        free(tmp);
+
+        return -3;
+    }
 
     t1 = start;
     while (i < decimal) {
@@ -61,12 +73,13 @@ int check_seed_overlap_n_cipher(char* seed)
         t1 = t1->next;
         i++;
     }
-    free(start);
+    free(tmp);
+    release_table(start);
 
     return ret - decimal;
 }
 
-char* encode_n_cipher(const char* string, char* seed, char* delimiter)
+char* encode_n_cipher(const char* string, const char* seed, const char* delimiter)
 {
     if (string == NULL || seed == NULL || delimiter == NULL)
         return NULL;
@@ -89,7 +102,7 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
           *     start   = NULL;
 
     /* convert seed to table */
-    if ((decimal = create_table(seed, &table, &start)) == 0)
+    if ((decimal = create_table((char*)seed, &table, &start)) == 0)
         return NULL;
 
     /* get string length */
@@ -109,7 +122,8 @@ char* encode_n_cipher(const char* string, char* seed, char* delimiter)
 
     /* convert ucs4 to table */
     for (i = 0; i < length; i++) {
-        if ((tmp = encode_table((unsigned int)cpoints[i], decimal, table, start)) == NULL)
+        if ((tmp = encode_table(
+                        (unsigned int)cpoints[i], decimal, table, start)) == NULL)
             goto ERR;
 
         destlen = strlen(dest);
@@ -156,7 +170,7 @@ ERR:
     return NULL;
 }
 
-char* decode_n_cipher(const char* string, char* seed, char* delimiter)
+char* decode_n_cipher(const char* string, const char* seed, const char* delimiter)
 {
     int         decimal = 0;
 
@@ -175,7 +189,7 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
           *     start   = NULL;
  
     /* convert seed to table */
-    if ((decimal = create_table(seed, &table, &start)) == 0)
+    if ((decimal = create_table((char*)seed, &table, &start)) == 0)
         return NULL;
 
     /* allocate memory */
@@ -198,7 +212,9 @@ char* decode_n_cipher(const char* string, char* seed, char* delimiter)
     /*
      * decode
      */
-    for (token = mbstrtok(strtmp, delimiter); token; token = mbstrtok(NULL, delimiter)) {
+    for (token = mbstrtok(strtmp, (char*)delimiter);
+            token;
+            token = mbstrtok(NULL, (char*)delimiter)) {
         /* get ucs4 codepint */
         cpoint = (gunichar)decode_table(token, decimal, table, start);
 

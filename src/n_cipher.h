@@ -28,8 +28,9 @@
 #define SEED        "にゃんぱす\0" /* default seed */
 #define DELIMITER   "〜\0"         /* default delimiter */
 
-extern int check_seed_overlap_n_cipher(char* seed);
-extern char* encode_n_cipher(const char* string, char* seed, char* delimiter);
-extern char* decode_n_cipher(const char* string, char* seed, char* delimiter);
+extern int check_seed_overlap_n_cipher(const char* seed);
+extern char* encode_n_cipher(const char* string, const char* seed, const char* delimiter);
+extern char* decode_n_cipher(const char* string, const char* seed, const char* delimiter);
 
+/* N_CIPHER_H */
 #endif
