@@ -36,4 +36,5 @@ extern char* encode_table(int cpoint, int base, list_t* table, list_t* start);
 extern int decode_table(char* string, int base, list_t* table, list_t* start);
 extern void release_table(list_t* table);
 
+/* TABLE_H */
 #endif
