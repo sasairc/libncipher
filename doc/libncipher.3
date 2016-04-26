@@ -1,0 +1,95 @@
+.TH LIBNCIPHER "3" "2016年4月" "LIBNCIPHER"
+.SH 名前
+libncipher \- n_cipher（にゃんぱす暗号・N暗号）ライブラリのC言語向け実装
+.SH 書式
+\fB#include <n_cipher.h>\fR
+.br
+
+.br
+\fB#define SEED        "にゃんぱす\\0"\fR    /* デフォルトのシードを使用するための定義 */
+.br
+\fB#define DELIMITER   "〜\\0"\fR            /* デフォルトのデリミタを使用するための定義 */
+.br
+
+.br
+\fBint check_seed_overlap_n_cipher(const char* seed);\fR
+.br
+\fBchar* encode_n_cipher(const char* string, const char* seed, const char* delimiter);\fR
+.br
+\fBchar* decode_n_cipher(const char* string, const char* seed, const char* delimiter);\fR
+.SH "説明"
+.TP
+check_seed_overlap_n_cipher()
+文字列がシード値として有効であるかを確認する関数。
+.br
+ここでの有効な文字列とは、文字の重複が存在せず、2文字かそれ以上の文字数を満たした文字列の事を指す。
+.br
+戻り値は、有効な文字列であれば偽、無効であれば0以上の整数、処理中の例外であれば0以下の整数がセットされる。
+.TP
+encode_n_cipher()
+文字列をN暗号で暗号化する関数。
+.br
+第一引数\fIstring\fRへ暗号化する文字列、第二引数\fIseed\fRへシード文字列、第三引数\fIdelimiter\fRへデリミタ文字列を指定する。
+.br
+戻り値は、暗号化が成功した場合、暗号化された配列（文字列）の先頭アドレスがセットされ、また、失敗の場合NULLとなる。
+.br
+.TP
+decode_n_cipher()
+文字列をN暗号で復号化する関数。
+.br
+第一引数\fIstring\fRへ復号化する文字列、第二引数\fIseed\fRへシード文字列、第三引数\fIdelimiter\fRへデリミタ文字列を指定する。
+.br
+戻り値は、復号化が成功した場合、復号化された配列（文字列）の先頭アドレスがセットされ、また、失敗の場合NULLとなる。
+.br
+.SH 注意
+本ライブラリはUnicode(UCS-2, UCS-4)のコードポイントを用いている為、その他のエンコーディングが為されている環境では用いる事は不可能。
+.br
+encode_n_cipher()またはdecode_n_cipher()で戻り値としてセットされたアドレスは、適宜、free()システムコールで開放することを推奨する。
+.SH 謝辞
+オリジナルはruby向けの実装であり、作者は@844196さんです。
+.br
+他言語への移植を好意的に捉えて下さった事に対し、この場で感謝を申し上げます。
+.SH 作者
+sasairc (@sasairc)
+.SH 著作権
+Copyright (c) 2015 sasairc
+.br
+
+.br
+Permission is hereby granted, free of charge, to any person obtaining a copy
+.br
+of this software and associated documentation files (the "Software"), to deal
+.br
+in the Software without restriction, including without limitation the rights
+.br
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.br
+copies of the Software, and to permit persons to whom the Software is
+.br
+furnished to do so, subject to the following conditions:
+.br
+
+.br
+The above copyright notice and this permission notice shall be included in all
+.br
+copies or substantial portions of the Software.
+.br
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+.br
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+.br
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+.br
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+.br
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+.br
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+.br
+OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+.SH 関連項目
+.B n_cipher
+.B renge
+.B yasuna
+.B clangsay
