@@ -5,6 +5,7 @@
 PREFIX     := /usr/local
 LIBDIR     := $(PREFIX)/lib
 INCLUDEDIR := $(PREFIX)/include
+MANDIR     := $(PREFIX)/share/man/ja/man3
 MAKE       := make
 CC         := cc
 RM         := rm
@@ -19,14 +20,19 @@ all clean:
 	@$(MAKE) -C ./src	$@
 	@$(MAKE) -C ./sample	$@
 
+install-man:
+	@$(MAKE) -C ./doc	$@
+
 install-lib install-header:
 	@$(MAKE) -C ./src	$@
 
-install: install-lib	\
+install: install-man	\
+	 install-lib	\
 	 install-header
 
 .PHONY: all		\
 	install		\
+	install-man	\
 	install-lib	\
 	install-header	\
 	clean
