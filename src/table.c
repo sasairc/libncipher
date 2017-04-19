@@ -144,9 +144,9 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     else
         y -= 2;
 
-    strcpy(dest, tmp[y + 1]);
+    memcpy(dest, tmp[y + 1], strlen(tmp[y + 1]) + 1);
     while (y >= 0) {
-        strcat(dest, tmp[y]);
+        memcpy(dest + strlen(dest), tmp[y], strlen(tmp[y]) + 1);
         y--;
     }
     free(tmp);
