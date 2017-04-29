@@ -30,6 +30,24 @@
 #include <string.h>
 #include <glib.h>
 
+static int check_seed_overlap_n_cipher(const char* seed);
+static char* encode_n_cipher(const char* string, const char* seed, const char* delimiter);
+static char* decode_n_cipher(const char* string, const char* seed, const char* delimiter);
+
+int init_n_cipher(N_CIPHER** n_cipher)
+{
+    static N_CIPHER nc;
+
+    nc.check_seed = check_seed_overlap_n_cipher;
+    nc.encode = encode_n_cipher;
+    nc.decode = decode_n_cipher;
+
+    *n_cipher = &nc;
+
+    return 0;
+}   
+
+static
 int check_seed_overlap_n_cipher(const char* seed)
 {
     int         i       = 0,
@@ -79,6 +97,7 @@ int check_seed_overlap_n_cipher(const char* seed)
     return ret - decimal;
 }
 
+static
 char* encode_n_cipher(const char* string, const char* seed, const char* delimiter)
 {
     if (string == NULL || seed == NULL || delimiter == NULL)
@@ -170,6 +189,7 @@ ERR:
     return NULL;
 }
 
+static
 char* decode_n_cipher(const char* string, const char* seed, const char* delimiter)
 {
     int         decimal = 0;
