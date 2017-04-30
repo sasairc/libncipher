@@ -93,8 +93,8 @@ int check_seed_overlap_n_cipher(const char* seed)
                 malloc(sizeof(char) * (strlen(seed) + 1))) == NULL)
         return -3;
 
+    memset(tmp, '\0', sizeof(char) * (strlen(seed) + 1));
     memcpy(tmp, seed, strlen(seed));
-    tmp[strlen(tmp)] = '\0';
 
     if ((decimal = create_table(tmp, &t1, &start)) == 0) {
         free(tmp);
@@ -160,8 +160,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
 
         goto ERR;
     } else {
+        memset((*n_cipher)->seed, '\0', sizeof(char) * (len + 1));
         memcpy((*n_cipher)->seed, p, len);
-        (*n_cipher)->seed[len] = '\0';
     }
 
     /*
@@ -180,8 +180,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
 
         goto ERR;
     } else {
+        memset((*n_cipher)->delimiter, '\0', sizeof(char) * (len + 1));
         memcpy((*n_cipher)->delimiter, p, len);
-        (*n_cipher)->delimiter[len] = '\0';
     }
 
     return 0;
@@ -352,7 +352,7 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
         blklen = g_unichar_to_utf8(cpoint, buf);
 
         /* concat character */
-        if (x_bufl <= destlen + blklen + 1) {
+        if (x_bufl <= (destlen + blklen + 1)) {
             x_bufl += BUFLEN;
             if ((dest = (char*)
                         realloc(dest, sizeof(char) * x_bufl)) == NULL)
