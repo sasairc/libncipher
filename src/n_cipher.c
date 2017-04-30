@@ -31,9 +31,9 @@
 #include <glib.h>
 
 #define LIBNAME         "libncipher"
-#define VERSION         1
-#define PATCHLEVEL      3
-#define SUBLEVEL        1
+#define VERSION         2
+#define PATCHLEVEL      0
+#define SUBLEVEL        0
 #define EXTRAVERSION    "-devel"
 
 static int check_seed_overlap_n_cipher(const char* seed);
@@ -358,9 +358,10 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
                         realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
         }
-        memcpy(dest + destlen , buf, blklen);
+        memcpy(dest + destlen, buf, blklen);
         destlen += blklen;
     }
+    *(dest + destlen - 1) = '\0';
 
     /* release memory */
     if (buf != NULL) {

@@ -115,8 +115,8 @@ int main(void)
         goto ERR;
 
     /* print result */
-    fprintf(stdout, "origin: %s\nencode: %s\ndecode: %s\nmemcmp: %d\n",
-            msg, enc, dec, memcmp(msg, dec, strlen(msg)));
+    fprintf(stdout, "origin: %s\nencode: %s\ndecode: %s\nstrcmp: %d\n",
+            msg, enc, dec, strcmp(msg, dec));
     free(enc);
     enc = NULL;
     free(dec);
@@ -141,8 +141,8 @@ int main(void)
         goto ERR;
 
     /* print result */
-    fprintf(stdout, "origin: %s\nencode: %s\ndecode: %s\nmemcmp: %d\n",
-            msg, enc, dec, memcmp(msg, dec, strlen(msg)));
+    fprintf(stdout, "origin: %s\nencode: %s\ndecode: %s\nstrcmp: %d\n",
+            msg, enc, dec, strcmp(msg, dec));
     free(enc);
     free(dec);
 
@@ -169,7 +169,7 @@ ERR:
 origin: サンプルテキストって何にするか結構悩むよね…
 encode: ぱすすぱぱす〜すににゃゃゃ〜すににににぱ〜すにににすぱ〜ぱすすすんゃ〜ぱすすぱんゃ〜ぱすすぱすぱ〜ぱすすすんぱ〜ぱすすにんん〜ぱすすにぱに〜ゃゃんんんゃす〜ぱすすにすに〜ぱすすににん〜ぱすすんにん〜ぱすぱすんぱ〜んにゃゃぱゃに〜ゃぱぱゃぱゃぱ〜ゃんすんすすに〜ぱすすゃぱゃ〜ぱすすゃすす〜ぱすすにすん〜んぱにすゃに〜
 decode: サンプルテキストって何にするか結構悩むよね…
-memcmp: 0
+strcmp: 0
 
 *** checking seed ***
 good = 0  (おうどん)
@@ -178,8 +178,8 @@ bad  = -2 (ん)
 
 origin: サンプルテキストって何にするか結構悩むよね…
 encode: んおおどんううそばんおおんんおんそばんおおんううんそばんおおんどどんそばんおおんおうどそばんおおどどんうそばんおおどんどうそばんおおんおどおそばんおおうどおんそばんおおうどうどそばうおんんううううそばんおおうどどんそばんおおううどうそばんおおどおどんそばんおおうおどんそばうんんうううおおそばうどどうんおどんそばうどおおどどどうそばんおおどおおおそばんおおどおどおそばんおおうどんうそばどおおおどうどそば
-decode: サンプルテキストって何にするか結構悩むよね…
-memcmp: 0
+decode: サンプルテキストって何にするか結構悩むよね…
+strcmp: 0
 ```
 
 ## Original
