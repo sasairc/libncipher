@@ -28,10 +28,14 @@
 #define SEED        "にゃんぱす\0" /* default seed */
 #define DELIMITER   "〜\0"         /* default delimiter */
 
-typedef struct {
+typedef struct N_CIPHER {
+    char*   seed;
+    char*   delimiter;
     int     (*check_seed)(const char* seed);
-    char*   (*encode)(const char* string, const char* seed, const char* delimiter);
-    char*   (*decode)(const char* string, const char* seed, const char* delimiter);
+    int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
+    char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
+    char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);
+    void    (*release)(struct N_CIPHER* n_cipher);
 } N_CIPHER;
 
 extern int init_n_cipher(N_CIPHER** n_cipher);

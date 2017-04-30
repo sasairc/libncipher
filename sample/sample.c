@@ -1,35 +1,42 @@
-/*
- * n_cipher - sample.c
- */
-
 #include "../src/n_cipher.h"
 #include "./file.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
+
+void print_usage(void)
+{
+    exit(0);
+}
 
 int main(int argc, char* argv[])
 {
     int         i           = 0,
+                lines       = 0,
                 res         = 0,
-                index       = 0,
-                lines       = 0;
+                index       = 0;
 
     short       eflag       = 0,
                 dflag       = 0;
 
-    char*       str         = NULL,
+    char*       seed        = NULL,
+        *       delimiter   = NULL,
+        *       str         = NULL,
         **      buf         = NULL;
 
-    N_CIPHER*   n_cipher    = NULL;
+    N_CIPHER*   n_cipher;
 
     struct  option opts[] = {
-        {"encode",  no_argument,    NULL, 'e'},
-        {"decode",  no_argument,    NULL, 'd'},
+        {"seed",        required_argument,  NULL, 's'},
+        {"delimiter",   required_argument,  NULL, 'm'},
+        {"encode",      no_argument,        NULL, 'e'},
+        {"decode",      no_argument,        NULL, 'd'},
+        {"help",        no_argument,        NULL,  0 },
         {0, 0, 0, 0},
     };
 
-    while ((res = getopt_long(argc, argv, "ed", opts, &index)) != -1) {
+    while ((res = getopt_long(argc, argv, "s:m:ed", opts, &index)) != -1) {
         switch (res) {
             case    'e':
                 eflag = 1;
@@ -37,25 +44,41 @@ int main(int argc, char* argv[])
             case    'd':
                 dflag = 1;
                 break;
+            case    's':
+                seed = optarg;
+                break;
+            case    'm':
+                delimiter = optarg;
+                break;
+            case    0:
+                print_usage();
             case    '?':
                 return -1;
         }
     }
+
+    init_n_cipher(&n_cipher);
+    if (seed != NULL) {
+        if (n_cipher->check_seed(seed) != 0) {
+            fprintf(stderr, "invalid seed\n");
+            n_cipher->release(n_cipher);
+
+            return 1;
+        }
+    }
+    n_cipher->config(&n_cipher, seed, delimiter);
 
     if ((lines = p_read_file_char(&buf, 128, 128, stdin, 0)) < 0) {
         fprintf(stderr, "p_read_file_char() failure\n");
 
         return 1;
     }
-
-    init_n_cipher(&n_cipher);
-
     i = 0;
     while (i < lines) {
         if (eflag == 1)
-            str = n_cipher->encode(buf[i], SEED, DELIMITER);
+            str = n_cipher->encode(&n_cipher, buf[i]);
         else if (dflag == 1)
-            str = n_cipher->decode(buf[i], SEED, DELIMITER);
+            str = n_cipher->decode(&n_cipher, buf[i]);
 
         if (str != NULL) {
             fprintf(stdout, "%s", str);
@@ -65,6 +88,7 @@ int main(int argc, char* argv[])
         free(buf[i]);
         i++;
     }
+    n_cipher->release(n_cipher);
     free(buf);
 
     return 0;
