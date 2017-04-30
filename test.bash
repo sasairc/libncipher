@@ -31,7 +31,7 @@ function run_static_bin() {
 	cat yasuna-quotes | ./sample/sample -e | ./sample/sample -d > dest.txt
 	diff -c yasuna-quotes dest.txt
 
-	cat yasuna-quotes | ./sample/sample -e "$SEED" | ./sample/sample -d -s "$SEED" > dest.txt
+	cat yasuna-quotes | ./sample/sample -e -s "$SEED" | ./sample/sample -d -s "$SEED" > dest.txt
 	diff -c yasuna-quotes dest.txt
 
 	return $?
