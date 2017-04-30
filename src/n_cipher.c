@@ -30,10 +30,17 @@
 #include <string.h>
 #include <glib.h>
 
+#define LIBNAME         "libncipher"
+#define VERSION         1
+#define PATCHLEVEL      3
+#define SUBLEVEL        1
+#define EXTRAVERSION    "-devel"
+
 static int check_seed_overlap_n_cipher(const char* seed);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
 static char* encode_n_cipher(N_CIPHER** n_cipher, const char* string);
 static char* decode_n_cipher(N_CIPHER** n_cipher, const char* string);
+static char* version_n_cipher(void);
 static void release_n_cipher(N_CIPHER* n_cipher);
 
 int init_n_cipher(N_CIPHER** n_cipher)
@@ -42,7 +49,8 @@ int init_n_cipher(N_CIPHER** n_cipher)
 
     if ((nc = (N_CIPHER*)
                 malloc(sizeof(N_CIPHER))) == NULL) {
-        fprintf(stderr, "n_cipher: init_n_cipher(): malloc() falure\n");
+        fprintf(stderr, "%s: init_n_cipher(): malloc() falure\n",
+                LIBNAME);
 
         return -1;
     }
@@ -53,6 +61,7 @@ int init_n_cipher(N_CIPHER** n_cipher)
     nc->config = config_n_cipher;
     nc->encode = encode_n_cipher;
     nc->decode = decode_n_cipher;
+    nc->version = version_n_cipher;
     nc->release = release_n_cipher;
 
     *n_cipher = nc;
@@ -146,7 +155,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
     len = strlen(p);
     if (((*n_cipher)->seed = (char*)
                 malloc(sizeof(char) * (len + 1))) == NULL) {
-        fprintf(stderr, "n_cipher: config_n_cipher(): malloc() failure\n");
+        fprintf(stderr, "%s: config_n_cipher(): malloc() failure\n",
+                LIBNAME);
 
         goto ERR;
     } else {
@@ -165,7 +175,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
     len = strlen(p);
     if (((*n_cipher)->delimiter = (char*)
                 malloc(sizeof(char) * (len + 1))) == NULL) {
-        fprintf(stderr, "n_cipher: config_n_cipher(): malloc() failure\n");
+        fprintf(stderr, "%s: config_n_cipher(): malloc() failure\n",
+                LIBNAME);
 
         goto ERR;
     } else {
@@ -380,6 +391,18 @@ ERR:
     release_table(start);
 
     return NULL;
+}
+
+static
+char* version_n_cipher(void)
+{
+    static char version[64];
+
+    memset(version, '\0', sizeof(version));
+    snprintf(version, sizeof(version), "%s %d.%d.%d%s",
+            LIBNAME, VERSION, PATCHLEVEL, SUBLEVEL, EXTRAVERSION);
+
+    return version;
 }
 
 static

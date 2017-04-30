@@ -166,11 +166,13 @@ ERR:
     return NULL;
 }
 
-int decode_table(char* string, int base, list_t* table, list_t* start)
+//int decode_table(char* string, int base, list_t* table, list_t* start)
+int decode_table(char* string, double base, list_t* table, list_t* start)
 {
     int     i       = 0,
-            digit   = 0,
             code    = 0;
+
+    double  digit   = 0;
 
     size_t  byte    = 0,
             sum     = 0;

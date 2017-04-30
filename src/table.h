@@ -33,7 +33,8 @@ typedef struct _LIST_T {
 
 extern int create_table(char* seed, list_t** dest_table, list_t** dest_start);
 extern char* encode_table(int cpoint, int base, list_t* table, list_t* start);
-extern int decode_table(char* string, int base, list_t* table, list_t* start);
+//extern int decode_table(char* string, int base, list_t* table, list_t* start);
+extern int decode_table(char* string, double base, list_t* table, list_t* start);
 extern void release_table(list_t* table);
 
 /* TABLE_H */
