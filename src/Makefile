@@ -2,9 +2,9 @@
 #    Makefile for libncipher
 #
 
-VERSION    = 1
-PATCHLEVEL = 3
-SUBLEVEL   = 1
+VERSION    = 2
+PATCHLEVEL = 0
+SUBLEVEL   = 0
 LINKERNAME = libncipher.so
 SONAME     = $(LINKERNAME).$(VERSION)
 REALNAME   = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
