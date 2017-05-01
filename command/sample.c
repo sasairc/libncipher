@@ -1,11 +1,12 @@
 /*
- * n_cipher sample program
+ * sample.c - n_cipher sample program
  */
 
 #include "../src/n_cipher.h"
 #include "./file.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
 #include <errno.h>
 
@@ -66,7 +67,12 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
     }
     i = 0;
     while (i < lines) {
-        if ((str = proc(&n_cipher, buf[i])) != NULL) {
+        if ((str = proc(&n_cipher, buf[i])) == NULL) {
+            fprintf(stdout, "%s: %.*s: invalid input\n",
+                    PROGNAME, strlen(buf[i]) - 1, buf[i]);
+
+            goto ERR;
+        } else {
             fprintf(stdout, "%s",
                     str);
             free(str);
@@ -78,6 +84,19 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
     free(buf);
 
     return 0;
+
+ERR:
+    if (buf != NULL) {
+        lines--;
+        while (lines >= 0) {
+            if (buf[lines] != NULL)
+                free(buf[lines]);
+            lines--;
+        }
+        free(buf);
+    }
+
+    return -2;
 }
 
 int main(int argc, char* argv[])
@@ -166,6 +185,9 @@ int main(int argc, char* argv[])
     }
 
 RELEASE:
+    if (fp != NULL)
+        fclose(fp);
+
     /* release n_cipher */
     n_cipher->release(n_cipher);
 
