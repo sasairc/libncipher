@@ -68,7 +68,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
     i = 0;
     while (i < lines) {
         if ((str = proc(&n_cipher, buf[i])) == NULL) {
-            fprintf(stdout, "%s: %.*s: invalid input\n",
+            fprintf(stderr, "%s: %.*s: invalid input\n",
                     PROGNAME, strlen(buf[i]) - 1, buf[i]);
 
             goto ERR;
@@ -81,6 +81,8 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
         free(buf[i]);
         i++;
     }
+    if (mode == 1)
+        putchar('\n');
     free(buf);
 
     return 0;
