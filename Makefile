@@ -18,7 +18,7 @@ export
 
 all clean:
 	@$(MAKE) -C ./src	$@
-	@$(MAKE) -C ./sample	$@
+	@$(MAKE) -C ./command	$@
 
 install-man:
 	@$(MAKE) -C ./doc	$@

@@ -1,52 +1,105 @@
-.TH LIBNCIPHER "3" "2016年4月" "LIBNCIPHER"
+.TH LIBNCIPHER "3" "2017年5月" "LIBNCIPHER"
 .SH 名前
-libncipher \- n_cipher（にゃんぱす暗号・N暗号）ライブラリのC言語向け実装
+libncipher \- n_cipher（にゃんぱす暗号・N暗号）のC言語向け実装
 .SH 書式
-\fB#include <n_cipher.h>\fR
+\fB#include <n_cipher.h>
 .br
 
+#define SEED        "にゃんぱす\\0"    /* デフォルトのシードを使用するための定義 */
 .br
-\fB#define SEED        "にゃんぱす\\0"\fR    /* デフォルトのシードを使用するための定義 */
-.br
-\fB#define DELIMITER   "〜\\0"\fR            /* デフォルトのデリミタを使用するための定義 */
+#define DELIMITER   "〜\\0"            /* デフォルトのデリミタを使用するための定義 */
 .br
 
+typedef struct N_CIPHER {
 .br
-\fBint check_seed_overlap_n_cipher(const char* seed);\fR
+    char*   seed;
 .br
-\fBchar* encode_n_cipher(const char* string, const char* seed, const char* delimiter);\fR
+    char*   delimiter;
 .br
-\fBchar* decode_n_cipher(const char* string, const char* seed, const char* delimiter);\fR
+    int     (*check_seed)(const char* seed);
+.br
+    int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
+.br
+    char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
+.br
+    char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);
+.br
+    char*   (*version)(void);
+.br
+    void    (*release)(struct N_CIPHER* n_cipher);
+.br
+} N_CIPHER;
+.br
+
+int init_n_cipher(N_CIPHER** n_cipher);
+\fR
 .SH "説明"
+以下に示す関数の説明文では、便宜を図る為、N_CIPHER構造体のポインタ変数\fIN_CIPHER* n_cipher\fRおよび、それの指す実体をまとめて\fBN_CIPHER\fRと記す。
+.SS INIT
 .TP
-check_seed_overlap_n_cipher()
+int init_n_cipher(N_CIPHER** n_cipher)
+N_CIPHERの実体の確保および初期化を行う関数。
+第一引数\fIn_cipher\fRへ初期化対象のN_CIPHERを指定する。戻り値は、成功の場合は0、失敗の場合は負の整数がセットされる。
+.br
+.SS N_CIPHER
+.TP
+char* seed
+設定済みのシード値。
+初期化のみで未設定の場合はNULLポインタ。
+.TP
+char* delimiter
+設定済みのデリミタ値。
+初期化のみで未設定の場合はNULLポインタ。
+.TP
+int check_seed(const char* seed)
 文字列がシード値として有効であるかを確認する関数。
-.br
 ここでの有効な文字列とは、文字の重複が存在せず、2文字かそれ以上の文字数を満たした文字列の事を指す。
+また、この関数でチェックするのはシード値の有効性のみであるため、デリミタ値とのコンフリクトは予期しない事に注意。
+戻り値は、有効な文字列であれば偽、無効であれば正の整数、処理中の例外であれば負の整数がセットされる。
 .br
-戻り値は、有効な文字列であれば偽、無効であれば0以上の整数、処理中の例外であれば0以下の整数がセットされる。
 .TP
-encode_n_cipher()
+int config(N_CIPHER** n_cipher, const char* seed, const char* delimiter)
+N_CIPHERに対してシード値およびデリミタ値を設定する関数。
+第一引数\fIn_cipher\fRへ設定対象のN_CIPHER、第二引数\fIseed\fRへ設定するシード値、第三引数\fIdelimiter\fRへ設定するデリミタ値を指定する。
+\fIseed\fRあるいは、\fIdelimiter\fRに対してNULLポインタが与えられた場合は、それぞれデフォルトの値が設定される。
+
+/* 以下の凡例は等価 */
+.br
+n_cipher->config(&n_cipher, NULL, NULL);
+.br
+n_cipher->config(&n_cipher, SEED, DELIMITER);
+.br
+n_cipher->config(&n_cipher, "にゃんぱす\\0", "〜\\0");
+
+戻り値は、成功した場合は偽であり、失敗した場合は負の整数がセットされる。
+.TP
+char* encode(N_CIPHER** n_cipher, const char* string)
 文字列をN暗号で暗号化する関数。
-.br
-第一引数\fIstring\fRへ暗号化する文字列、第二引数\fIseed\fRへシード文字列、第三引数\fIdelimiter\fRへデリミタ文字列を指定する。
-.br
-戻り値は、暗号化が成功した場合、暗号化された配列（文字列）の先頭アドレスがセットされ、また、失敗の場合NULLとなる。
-.br
+第一引数\fIn_cipher\fRへ設定済みのN_CIPHER、第二引数\fIstring\fRへ暗号化する文字列を指定する。
+戻り値は、暗号化が成功した場合、暗号化された配列（文字列）の先頭アドレスがセットされ、また、失敗の場合NULLポインタとなる。
+また、戻り値として返されたアドレスに対応するメモリ領域は、適宜解放を要す。
 .TP
-decode_n_cipher()
+char* decode(N_CIPHER** n_cipher, const char* string)
 文字列をN暗号で復号化する関数。
-.br
-第一引数\fIstring\fRへ復号化する文字列、第二引数\fIseed\fRへシード文字列、第三引数\fIdelimiter\fRへデリミタ文字列を指定する。
-.br
-戻り値は、復号化が成功した場合、復号化された配列（文字列）の先頭アドレスがセットされ、また、失敗の場合NULLとなる。
-.br
+第一引数\fIn_cipher\fRへ設定済みのN_CIPHER、第二引数\fIstring\fRへ暗号化する文字列を指定する。
+戻り値は、復号化が成功した場合、復号化された配列（文字列）の先頭アドレスがセットされ、また、失敗の場合NULLポインタとなる。
+また、戻り値として返されたアドレスに対応するメモリ領域は、適宜解放を要す。
+注意点として、\fIstring\fRへ暗号ではない無効な文字列が指定された場合、decode()側で失敗とみなすかは利用環境のロケールに依存する。
+.TP
+char* version(void)
+libncipherのバージョン情報を取得する関数。
+第一引数\fIn_cipher\fRへ設定済みのN_CIPHERを指定する。戻り値として、libncipherのバージョン情報配列（文字列）の先頭アドレスがセットされる。
+通常この関数は失敗しない。
+.TP
+void release(N_CIPHER* n_cipher)
+N_CIPHERおよび、これに関連するリソースを格納するメモリ領域を解放する。
+第一引数\fIn_cipher\fRへ設定済みのN_CIPHERを指定する。また、戻り値は存在しない。
 .SH 注意
-本ライブラリはUnicode(UCS-2, UCS-4)のコードポイントを用いている為、その他のエンコーディングが為されている環境では用いる事は不可能。
+本ライブラリはUnicode(UCS-2, UCS-4)のコードポイント情報を用いている為、その他のエンコーディングが為されている環境では用いる事は不可能。
 .br
-encode_n_cipher()またはdecode_n_cipher()で戻り値としてセットされたアドレスは、適宜、free()システムコールで開放することを推奨する。
+encode()またはdecode()で戻り値としてセットされたアドレスは、適宜、free()システムコールで開放することを推奨する。
 .SH 謝辞
-オリジナルはruby向けの実装であり、作者は@844196さんです。
+オリジナルはrubyおよびgo向けの実装であり、作者は@844196さんです。
 .br
 他言語への移植を好意的に捉えて下さった事に対し、この場で感謝を申し上げます。
 .SH 作者
@@ -90,6 +143,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
  
 .SH 関連項目
 .B n_cipher
+.B neo_ncipher
 .B renge
+.B bag
 .B yasuna
 .B clangsay

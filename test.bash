@@ -21,8 +21,17 @@ function install_all() {
 function run_static_bin() {
 	echo "*** run ***"
 
+	SEED="ほげふがおうどんqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
+
 	wget https://raw.githubusercontent.com/sasairc/yasuna/master/quotes/yasuna-quotes
-	cat yasuna-quotes | ./sample/sample -e | ./sample/sample -d > dest.txt
+
+	./command/sample --help
+	./command/sample --version
+
+	cat yasuna-quotes | ./command/sample -e | ./command/sample -d > dest.txt
+	diff -c yasuna-quotes dest.txt
+
+	cat yasuna-quotes | ./command/sample -e -s "$SEED" | ./command/sample -d -s "$SEED" > dest.txt
 	diff -c yasuna-quotes dest.txt
 
 	return $?
