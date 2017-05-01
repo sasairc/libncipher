@@ -34,7 +34,7 @@
 #define VERSION         2
 #define PATCHLEVEL      0
 #define SUBLEVEL        0
-#define EXTRAVERSION    "-devel"
+#define EXTRAVERSION    ""
 
 static int check_seed_overlap_n_cipher(const char* seed);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
