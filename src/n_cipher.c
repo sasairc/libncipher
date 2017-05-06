@@ -32,9 +32,9 @@
 
 #define LIBNAME         "libncipher"
 #define VERSION         2
-#define PATCHLEVEL      0
+#define PATCHLEVEL      1
 #define SUBLEVEL        0
-#define EXTRAVERSION    ""
+#define EXTRAVERSION    "-devel"
 
 static int check_seed_overlap_n_cipher(const char* seed);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
@@ -263,13 +263,14 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
         /* concat string */
         memcpy(dest + destlen, tmp, blklen);
         destlen += blklen;
-        memcpy(dest + destlen, (*n_cipher)->delimiter, delmlen + 1);
-        destlen += delmlen;
-
         if (tmp != NULL) {
             free(tmp);
             tmp = NULL;
         }
+        if ((i + 1) >= length)
+            break;
+        memcpy(dest + destlen, (*n_cipher)->delimiter, delmlen + 1);
+        destlen += delmlen;
         i++;
     }
     *(dest + destlen) = '\0';
@@ -336,21 +337,19 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
     if ((strtmp = (char*)
                 malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
         goto ERR;
-    else
-        memcpy(strtmp, string, strlen(string));
+
+    memset(strtmp, '\0', strlen(string) + 1);
+    memcpy(strtmp, string, strlen(string));
 
     /*
      * decode
      */
-    for (token = mbstrtok(strtmp, (*n_cipher)->delimiter);
-            token;
-            token = mbstrtok(NULL, (*n_cipher)->delimiter)) {
+    token = mbstrtok(strtmp, (*n_cipher)->delimiter);
+    while (token != NULL) {
         /* get ucs4 codepint */
         cpoint = (gunichar)decode_table(token, decimal, table, start);
-
         /* convert ucs4 to character */
         blklen = g_unichar_to_utf8(cpoint, buf);
-
         /* concat character */
         if (x_bufl <= (destlen + blklen + 1)) {
             x_bufl += BUFLEN;
@@ -360,8 +359,10 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
         }
         memcpy(dest + destlen, buf, blklen);
         destlen += blklen;
+        token = mbstrtok(NULL, (*n_cipher)->delimiter);
     }
-    *(dest + destlen - 1) = '\0';
+//  *(dest + strlen(dest)) = '\0';
+    *(dest + destlen) = '\0';
 
     /* release memory */
     if (buf != NULL) {
