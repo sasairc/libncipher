@@ -166,7 +166,6 @@ ERR:
     return NULL;
 }
 
-//int decode_table(char* string, int base, list_t* table, list_t* start)
 int decode_table(char* string, double base, list_t* table, list_t* start)
 {
     int     i       = 0,

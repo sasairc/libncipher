@@ -139,16 +139,14 @@ int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int c
                 malloc(sizeof(char*) * t_lines)) == NULL)
         goto ERR;
 
-    /* lf to ? */
-    if (chomp > 0)
-        end = '\0';
-    else
-        end = '\n';
-
     while ((c = fgetc(fp)) != EOF) {
         switch (c) {
             case    '\n':
-                str[x] = end;
+                if (chomp > 0)
+                    str[x] = '\0';
+                else
+                    str[x] = c;
+
                 tmplen = strlen(str);
                 /* reallocate array of Y coordinate */
                 if (y == (lines - 1)) {
@@ -186,7 +184,12 @@ int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int c
 
     /* \n -{data}- EOF */
     if (x > 0) {
-        str[x] = end;
+        /* remove lf? */
+        if (chomp > 0)
+            str[x] = '\0';
+        else
+            str[x] = c;
+
         tmplen = strlen(str);
         /* reallocate array of Y coordinate */
         if (y == (lines - 1)) {
@@ -202,7 +205,7 @@ int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int c
 
         /* copy, str to buffer */
         memcpy(buf[y], str, tmplen);
-        buf[y][tmplen] = '\0';
+        buf[y][tmplen - 1] = '\0';
         y++;
     }
 

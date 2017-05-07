@@ -206,8 +206,7 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
             || (*n_cipher)->seed == NULL || (*n_cipher)->delimiter == NULL)
         return NULL;
 
-    int         i       = 0,
-                decimal = 0;
+    int         decimal = 0;
 
     size_t      x_bufl  = BUFLEN,
                 delmlen = 0,
@@ -217,7 +216,9 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
     char*       dest    = NULL,
         *       tmp     = NULL;
 
-    glong       length  = 0;
+    glong       i       = 0,
+                length  = 0;
+
     gunichar*   cpoints = NULL;
 
     list_t*     table   = NULL,
@@ -253,7 +254,7 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
         blklen = strlen(tmp);
 
         /* reallocate memory */
-        if (x_bufl < (destlen + blklen + delmlen)) {
+        if (x_bufl <= (destlen + blklen + delmlen)) {
             x_bufl += BUFLEN;
             if ((dest = (char*)
                         realloc(dest, sizeof(char) * x_bufl)) == NULL)
@@ -263,17 +264,15 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
         /* concat string */
         memcpy(dest + destlen, tmp, blklen);
         destlen += blklen;
+        memcpy(dest + destlen, (*n_cipher)->delimiter, delmlen);
+        destlen += delmlen;
+        *(dest + destlen) = '\0';
         if (tmp != NULL) {
             free(tmp);
             tmp = NULL;
         }
-        if ((i + 1) >= length)
-            break;
-        memcpy(dest + destlen, (*n_cipher)->delimiter, delmlen + 1);
-        destlen += delmlen;
         i++;
     }
-    *(dest + destlen) = '\0';
 
     /* release memory */
     g_free(cpoints);
@@ -351,18 +350,18 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
         /* convert ucs4 to character */
         blklen = g_unichar_to_utf8(cpoint, buf);
         /* concat character */
-        if (x_bufl <= (destlen + blklen + 1)) {
+        if (x_bufl <= (destlen + blklen)) {
             x_bufl += BUFLEN;
             if ((dest = (char*)
                         realloc(dest, sizeof(char) * x_bufl)) == NULL)
                 goto ERR;
         }
+        /* concat string */
         memcpy(dest + destlen, buf, blklen);
         destlen += blklen;
+        *(dest + destlen) = '\0';
         token = mbstrtok(NULL, (*n_cipher)->delimiter);
     }
-//  *(dest + strlen(dest)) = '\0';
-    *(dest + destlen) = '\0';
 
     /* release memory */
     if (buf != NULL) {

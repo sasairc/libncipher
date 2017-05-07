@@ -59,7 +59,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
     else
         proc = n_cipher->decode;
 
-    if ((lines = p_read_file_char(&buf, 128, 128, fp, 1)) < 0) {
+    if ((lines = p_read_file_char(&buf, 128, 128, fp, 0)) < 0) {
         fprintf(stderr, "%s: do_proc(): p_read_file_char() failure\n",
                 PROGNAME);
 
@@ -73,8 +73,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
 
             goto ERR;
         } else {
-            fprintf(stdout, "%s\n",
-                    str);
+            fprintf(stdout, "%s", str);
             free(str);
             str = NULL;
         }
