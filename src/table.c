@@ -24,9 +24,11 @@
 
 #include "./table.h"
 #include "./misc.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
 
 int create_table(char* seed, list_t** dest_table, list_t** dest_start)
 {
@@ -39,14 +41,17 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
           *     start   = NULL;
 
     if (mbstrlen_without_byte(seed) < 1)
-        return 0;
+        return -1;
 
     if ((table = (list_t*)
-                malloc(sizeof(list_t))) == NULL)
-        return 0;
-    else
-        start = table;
+                malloc(sizeof(list_t))) == NULL) {
+        fprintf(stderr, "%s: %d: create_table(): malloc(): %s\n",
+                __FILE__, __LINE__, strerror(errno));
 
+        return -2;
+    }
+
+    start = table;
     while (*seed != '\0') {
         code = (unsigned char)*seed;
 
@@ -64,15 +69,23 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
         }
 
         if ((table->next = (list_t*)
-                    malloc(sizeof(list_t))) == NULL)
+                    malloc(sizeof(list_t))) == NULL) {
+            fprintf(stderr, "%s: %d: create_table(): malloc(): %s\n",
+                    __FILE__, __LINE__, strerror(errno));
+
             goto ERR;
+        }
 
         table = table->next;
         table->number = i;
 
         if ((table->character = (char*)
-                    malloc(sizeof(char) * (byte + 1))) == NULL)
+                    malloc(sizeof(char) * (byte + 1))) == NULL) {
+            fprintf(stderr, "%s: %d: create_table(): malloc(): %s\n",
+                    __FILE__, __LINE__, strerror(errno));
+
             goto ERR;
+        }
 
         j = 0;
         while (j < byte) {
@@ -96,7 +109,7 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
 ERR:
     release_table(start);
 
-    return 0;
+    return -3;
 }
 
 char* encode_table(int cpoint, int base, list_t* table, list_t* start)
@@ -114,15 +127,23 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
         **  tmp     = NULL;
 
     if ((tmp = (char**)
-                malloc(sizeof(char*) * y_bufl)) == NULL)
+                malloc(sizeof(char*) * y_bufl)) == NULL) {
+        fprintf(stderr, "%s: %d: encode_table(): malloc(): %s\n",
+                __FILE__, __LINE__, strerror(errno));
+
         return NULL;
+    }
 
     while (cpoint > 0) {
         if (y_bufl <= y) {
             y_bufl += BUFLEN;
             if ((tmp = (char**)
-                        realloc(tmp, sizeof(char*) * y_bufl)) == NULL)
+                        realloc(tmp, sizeof(char*) * y_bufl)) == NULL) {
+                fprintf(stderr, "%s: %d: encode_table(): realloc(): %s\n",
+                        __FILE__, __LINE__, strerror(errno));
+
                 goto ERR;
+            }
         }
 
         fragmnt = cpoint % base;
@@ -139,11 +160,14 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
     }
 
     if ((dest = (char*)
-                malloc(sizeof(char) * (destlen + 1))) == NULL)
-        goto ERR;
-    else
-        y -= 2;
+                malloc(sizeof(char) * (destlen + 1))) == NULL) {
+        fprintf(stderr, "%s: %d: encode_table(): malloc(): %s\n",
+                __FILE__, __LINE__, strerror(errno));
 
+        goto ERR;
+    }
+
+    y -= 2;
     memcpy(dest, tmp[y + 1], strlen(tmp[y + 1]) + 1);
     while (y >= 0) {
         memcpy(dest + strlen(dest), tmp[y], strlen(tmp[y]) + 1);
@@ -170,6 +194,8 @@ int decode_table(char* string, double base, list_t* table, list_t* start)
 {
     int     i       = 0,
             code    = 0;
+
+    short   iflag   = 0;
 
     double  digit   = 0;
 

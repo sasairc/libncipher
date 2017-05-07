@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <glib.h>
+#include <errno.h>
 
 #define LIBNAME         "libncipher"
 #define VERSION         2
@@ -49,8 +50,8 @@ int init_n_cipher(N_CIPHER** n_cipher)
 
     if ((nc = (N_CIPHER*)
                 malloc(sizeof(N_CIPHER))) == NULL) {
-        fprintf(stderr, "%s: init_n_cipher(): malloc() falure\n",
-                LIBNAME);
+        fprintf(stderr, "%s: %s: %d: init_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         return -1;
     }
@@ -90,13 +91,17 @@ int check_seed_overlap_n_cipher(const char* seed)
         return -2;
 
     if ((tmp = (char*)
-                malloc(sizeof(char) * (strlen(seed) + 1))) == NULL)
+                malloc(sizeof(char) * (strlen(seed) + 1))) == NULL) {
+        fprintf(stderr, "%s: %s: %d: check_seed_overlap_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
+
         return -3;
+    }
 
     memset(tmp, '\0', sizeof(char) * (strlen(seed) + 1));
     memcpy(tmp, seed, strlen(seed));
 
-    if ((decimal = create_table(tmp, &t1, &start)) == 0) {
+    if ((decimal = create_table(tmp, &t1, &start)) < 0) {
         free(tmp);
 
         return -4;
@@ -155,8 +160,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
     len = strlen(p);
     if (((*n_cipher)->seed = (char*)
                 malloc(sizeof(char) * (len + 1))) == NULL) {
-        fprintf(stderr, "%s: config_n_cipher(): malloc() failure\n",
-                LIBNAME);
+        fprintf(stderr, "%s: %s: %d: config_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         goto ERR;
     } else {
@@ -175,8 +180,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
     len = strlen(p);
     if (((*n_cipher)->delimiter = (char*)
                 malloc(sizeof(char) * (len + 1))) == NULL) {
-        fprintf(stderr, "%s: config_n_cipher(): malloc() failure\n",
-                LIBNAME);
+        fprintf(stderr, "%s: %s: %d: config_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         goto ERR;
     } else {
@@ -225,7 +230,7 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
           *     start   = NULL;
 
     /* convert seed to table */
-    if ((decimal = create_table((*n_cipher)->seed, &table, &start)) == 0)
+    if ((decimal = create_table((*n_cipher)->seed, &table, &start)) < 0)
         return NULL;
 
     /* get string length */
@@ -236,11 +241,14 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
 
     /* allocate memory */
     if ((dest = (char*)
-                malloc(sizeof(char) * x_bufl)) == NULL)
-        goto ERR;
-    else
-        memset(dest, '\0', x_bufl);
+                malloc(sizeof(char) * x_bufl)) == NULL) {
+        fprintf(stderr, "%s: %s: %d: encode_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
+        goto ERR;
+    }
+
+    memset(dest, '\0', x_bufl);
     delmlen = strlen((*n_cipher)->delimiter);
 
     /* convert ucs4 to table */
@@ -257,8 +265,12 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
         if (x_bufl <= (destlen + blklen + delmlen)) {
             x_bufl += BUFLEN;
             if ((dest = (char*)
-                        realloc(dest, sizeof(char) * x_bufl)) == NULL)
+                        realloc(dest, sizeof(char) * x_bufl)) == NULL) {
+                fprintf(stderr, "%s: %s: %d: encode_n_cipher(): realloc(): %s\n",
+                        LIBNAME, __FILE__, __LINE__, strerror(errno));
+
                 goto ERR;
+            }
         }
 
         /* concat string */
@@ -302,7 +314,8 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
             || (*n_cipher)->seed == NULL || (*n_cipher)->delimiter == NULL)
         return NULL;
     
-    int         decimal = 0;
+    int         ret     = 0,
+                decimal = 0;
 
     size_t      x_bufl  = BUFLEN,
                 destlen = 0,
@@ -319,24 +332,34 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
           *     start   = NULL;
  
     /* convert seed to table */
-    if ((decimal = create_table((*n_cipher)->seed, &table, &start)) == 0)
+    if ((decimal = create_table((*n_cipher)->seed, &table, &start)) < 0)
         return NULL;
 
     /* allocate memory */
     if ((buf = (gchar*)
-                malloc(sizeof(gchar))) == NULL)
-        goto ERR;
+                malloc(sizeof(gchar))) == NULL) {
+        fprintf(stderr, "%s: %s: %d: decode_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
+        goto ERR;
+    }
     if ((dest = (char*)
-                malloc(sizeof(char) * x_bufl)) == NULL)
-        goto ERR;
-    else
-        memset(dest, '\0', x_bufl);
+                malloc(sizeof(char) * x_bufl)) == NULL) {
+        fprintf(stderr, "%s: %s: %d: decode_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
+        goto ERR;
+    }
     if ((strtmp = (char*)
-                malloc(sizeof(char) * (strlen(string) + 1))) == NULL)
-        goto ERR;
+                malloc(sizeof(char) * (strlen(string) + 1))) == NULL) {
+        fprintf(stderr, "%s: %s: %d: decode_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
 
+        goto ERR;
+    }
+
+    /* initialize variable */
+    memset(dest, '\0', x_bufl);
     memset(strtmp, '\0', strlen(string) + 1);
     memcpy(strtmp, string, strlen(string));
 
@@ -346,15 +369,21 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
     token = mbstrtok(strtmp, (*n_cipher)->delimiter);
     while (token != NULL) {
         /* get ucs4 codepint */
-        cpoint = (gunichar)decode_table(token, decimal, table, start);
+        if ((ret = decode_table(token, decimal, table, start)) < 0)
+            goto ERR;
+        cpoint = (gunichar)ret;
         /* convert ucs4 to character */
         blklen = g_unichar_to_utf8(cpoint, buf);
         /* concat character */
         if (x_bufl <= (destlen + blklen)) {
             x_bufl += BUFLEN;
             if ((dest = (char*)
-                        realloc(dest, sizeof(char) * x_bufl)) == NULL)
+                        realloc(dest, sizeof(char) * x_bufl)) == NULL) {
+                fprintf(stderr, "%s: %s: %d: decode_n_cipher(): realloc(): %s\n",
+                        LIBNAME, __FILE__, __LINE__, strerror(errno));
+
                 goto ERR;
+            }
         }
         /* concat string */
         memcpy(dest + destlen, buf, blklen);
