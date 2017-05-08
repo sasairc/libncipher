@@ -2,7 +2,12 @@
  * sample.c - n_cipher sample program
  */
 
+#ifdef  WITH_SHARED
+#include <n_cipher.h>
+#else
 #include "../src/n_cipher.h"
+/* WITH_SHARED */
+#endif
 #include "./file.h"
 #include <stdio.h>
 #include <stdlib.h>

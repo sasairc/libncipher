@@ -13,12 +13,14 @@ RM         := rm
 CFLAGS     := -O2 -g
 LDFLAGS    :=
 BUFLEN     := 256
-LOCALE     :=
 CMDLINE    := 0
 export
 
 all clean:
 	@$(MAKE) -C ./src	$@
+	@$(MAKE) -C ./command	$@
+
+build-shared-sample:
 	@$(MAKE) -C ./command	$@
 
 install-man:

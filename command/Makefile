@@ -1,3 +1,7 @@
+#
+#    Makefile for libncipher
+#
+
 TARGET	= sample
 SRCS	= $(wildcard *.c)
 OBJS	= $(SRCS:.c=.o) $(wildcard ../src/*.o)
@@ -16,6 +20,14 @@ ifeq ($(CMDLINE), 0)
 	@$(CC) $^ -o $@ $(DEFLDFLAGS)
 else
 	$(CC) $^ -o $@ $(DEFLDFLAGS)
+endif
+
+build-shared-sample: $(OBJS)
+ifeq ($(CMDLINE), 0)
+	@echo "  BUILD   $@"
+	@$(CC) $^ -o $(TARGET) $(DEFLDFLAGS) -lncipher -DWITH_SHARED
+else
+	$(CC) $^ -o $(TARGET) $(DEFLDFLAGS) -lncipher -DWITH_SHARED
 endif
 
 %.o: %.c

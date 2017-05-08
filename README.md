@@ -4,18 +4,19 @@ libncipher
 [![version](http://img.shields.io/github/tag/sasairc/libncipher.svg?style=flat&label=version)](https://github.com/sasairc/libncipher/releases)
 [![license](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://raw.githubusercontent.com/sasairc/libncipher/master/LICENSE)
 [![issues](http://img.shields.io/github/issues/sasairc/libncipher.svg?style=flat)](https://github.com/sasairc/libncipher/issues)
+[![language](https://img.shields.io/badge/language-C%2FC%2B%2B-lightgrey.svg)](https://github.com/sasairc/libncipher/blob/master/src/n_cipher.h)
 [![build](https://img.shields.io/travis/sasairc/libncipher.svg?style=flat)](https://travis-ci.org/sasairc/libncipher)
 
-C/C++向け[n_cipher](https://github.com/844196/n_cipher)（にゃんぱす暗号）ライブラリ。	
+C/C++向け[Nyanpasu Cipher (N-Cipher)](https://github.com/844196/n_cipher)ライブラリ。	
 seed値は128文字まで確認済みです。
 
 
 ## Requirements
 
-* GNU Make
+* GNU Make (gmake)
 * gcc or clang/llvm
-* pkg-config
-* glib-2.0
+* pkg-config >= 0.26
+* GLib >= 2.0
 
 
 ## Install
@@ -23,6 +24,7 @@ seed値は128文字まで確認済みです。
 ```shellsession
 % make
 # make install
+% build-shared-sample    # optional
 ```
 
 
@@ -56,11 +58,12 @@ int init_n_cipher(N_CIPHER** n_cipher);
 
 #### int check_argument(const char\* seed, const char\* delimiter)
 
-seed文字列および、delimiter文字列の有効性をチェックします。戻り値は、成功の場合は0、重複する文字がある場合は正の整数、その他のエラーの場合は負の整数です。
+seed値および、delimiter値の有効性をチェックします。ここでの有効な値とは、文字集合において重複文字が存在せず、seed値は2文字かそれ以上、delimiter値は1文字かそれ以上の文字列の事を指します。
+戻り値は、成功の場合は0、重複する文字がある場合は正の整数、その他のエラーの場合は負の整数です。
 
 #### int config(N_CIPHER\*\* n_cipher, const char\* seed, const char\* delimiter)
 
-seed文字列ならびに、delimiter文字列のセットを行います。引数として`NULL`ポインタが与えられた場合、デフォルトの値がセットされます。戻り値は、成功の場合は0、失敗の場合は負の整数です。
+seed値ならびに、delimiter値のセット(設定)を行います。引数として`NULL`ポインタが与えられた場合、デフォルトの値がセットされます。戻り値は、成功の場合は0、失敗の場合は負の整数です。
 
 #### char\* encode(N_CIPHER\*\* n_cipher, const char\* string)
 
@@ -78,7 +81,15 @@ N暗号の復号化を行います。成功した場合の戻り値は、復号�
 
 `N_CIPHER`のメモリ解放を行います。
 
+-
+
+詳しい説明や追加情報については`libncipher.3`をご覧下さい。
+
 ## Example
+
+利用法はC/C++共に共通です。ここでは、凡例としてCによるサンプルコードを掲載します。
+
+### Source code
 
 ```c
 /*
@@ -168,6 +179,8 @@ ERR:
 }
 ```
 
+### Result
+
 ```shellsession
 % gcc example.c -o example -lncipher
 % ./example
@@ -194,6 +207,9 @@ strcmp: 0
 
 [844196/neo_ncipher](https://github.com/844196/neo_ncipher) - for Go
 
+## Documentation
+
+[844196/ncp_spec](https://github.com/844196/ncp_spec) - Nyanpasu Cipher (N-Cipher) specification
 
 ## License
 
@@ -202,4 +218,6 @@ strcmp: 0
 
 ## Author
 
-sasairc (https://github.com/sasairc)
+sasairc (https://github.com/sasairc)		
+
+Masaya Tk (https://github.com/844196) - ncp_spec
