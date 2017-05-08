@@ -36,15 +36,29 @@ seed値は128文字まで確認済みです。
 #define SEED        "にゃんぱす\0" /* default seed */
 #define DELIMITER   "〜\0"         /* default delimiter */
 
+/*
+ * return value of check_argument()
+ */
+#define S_TOO_SHORT -1  /* seed too short */
+#define S_TOO_LONG  -2  /* seed too long */
+#define D_TOO_SHORT -3  /* delimiter too long */
+
+struct TABLE {
+    int             decimal;
+    struct _LIST_T* start;	/* table.h */
+};
+
 typedef struct N_CIPHER {
     char*   seed;
     char*   delimiter;
     int     (*check_argument)(const char* seed, const char* delimiter);
     int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
+    int     (*ready)(struct N_CIPHER** n_cipher);
     char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
     char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);
     char*   (*version)(void);
     void    (*release)(struct N_CIPHER* n_cipher);
+    struct TABLE* table;
 } N_CIPHER;
 
 int init_n_cipher(N_CIPHER** n_cipher);
@@ -64,6 +78,10 @@ seed値および、delimiter値の有効性をチェックします。ここで�
 #### int config(N_CIPHER\*\* n_cipher, const char\* seed, const char\* delimiter)
 
 seed値ならびに、delimiter値のセット(設定)を行います。引数として`NULL`ポインタが与えられた場合、デフォルトの値がセットされます。戻り値は、成功の場合は0、失敗の場合は負の整数です。
+
+#### int ready(N_CIPHER\*\* n_cipher)
+
+`N_CIPHER`が設定済みで、暗号化および復号化を行える状態かを確かめる関数です。戻り値は、成功の場合は0、失敗の場合は負の整数です。
 
 #### char\* encode(N_CIPHER\*\* n_cipher, const char\* string)
 
@@ -193,7 +211,7 @@ strcmp: 0
 good = 0 (おうどん)
 bad  = 2 (てんぷらうどん)
 bad  = 2 (うどん, たんめん)
-bad  = -2 (ん)
+bad  = -1 (ん)
 
 origin: サンプルテキストって何にするか結構悩むよね…
 encode: んおおどんううそばんおおんんおんそばんおおんううんそばんおおんどどんそばんおおんおうどそばんおおどどんうそばんおおどんどうそばんおおんおどおそばんおおうどおんそばんおおうどうどそばうおんんううううそばんおおうどどんそばんおおううどうそばんおおどおどんそばんおおうおどんそばうんんうううおおそばうどどうんおどんそばうどおおどどどうそばんおおどおおおそばんおおどおどおそばんおおうどんうそばどおおおどうどそば

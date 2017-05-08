@@ -10,6 +10,28 @@ libncipher \- n_cipher（にゃんぱす暗号・N暗号）のC言語向け実�
 #define DELIMITER   "〜\\0"            /* デフォルトのデリミタを使用するための定義 */
 .br
 
+/*
+.br
+ * return value of check_argument()
+.br
+ */
+.br
+#define S_TOO_SHORT -1  /* seed too short */
+.br
+#define S_TOO_LONG  -2  /* seed too long */
+.br
+#define D_TOO_SHORT -3  /* delimiter too long */
+.br
+
+struct TABLE {
+.br
+    int             decimal;
+.br
+    struct _LIST_T* start;
+.br
+};
+.br
+
 typedef struct N_CIPHER {
 .br
     char*   seed;
@@ -20,6 +42,8 @@ typedef struct N_CIPHER {
 .br
     int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
 .br
+    int     (*ready)(struct N_CIPHER** n_cipher);
+.br
     char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
 .br
     char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);
@@ -27,6 +51,8 @@ typedef struct N_CIPHER {
     char*   (*version)(void);
 .br
     void    (*release)(struct N_CIPHER* n_cipher);
+.br
+    struct TABLE* table;    /* table.h */
 .br
 } N_CIPHER;
 .br
@@ -73,6 +99,11 @@ n_cipher->config(&n_cipher, "にゃんぱす\\0", "〜\\0");
 
 戻り値は、成功した場合は偽であり、失敗した場合は負の整数がセットされる。
 .TP
+int ready(N_CIPHER** n_cipher)
+N_CIPHERが設定済みかを確認する関数。
+第一引数\fIn_cipher\fRに指定されたN_CIPHERが設定済みであり、既に暗号化または復号化できるかを確認する。
+戻り値は、成功の場合は0、失敗の場合は負の整数がセットされる。
+.TP
 char* encode(N_CIPHER** n_cipher, const char* string)
 文字列をN暗号で暗号化する関数。
 第一引数\fIn_cipher\fRへ設定済みのN_CIPHER、第二引数\fIstring\fRへ暗号化する文字列を指定する。
@@ -104,6 +135,11 @@ encode()またはdecode()で戻り値としてセットされたアドレスは�
 他言語への移植を好意的に捉えて下さった事に対し、この場で感謝を申し上げます。
 .SH 作者
 sasairc (@sasairc)
+.br
+
+Documentation "Nyanpasu Cipher (N-Cipher) specification"
+.br
+Masaya Tk (@844196)
 .SH 著作権
 Copyright (c) 2015 sasairc
 .br
