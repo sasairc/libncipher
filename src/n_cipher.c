@@ -32,10 +32,6 @@
 #include <errno.h>
 
 #define LIBNAME         "libncipher"
-#define VERSION         2
-#define PATCHLEVEL      1
-#define SUBLEVEL        0
-#define EXTRAVERSION    "-devel"
 
 static int check_argument_n_cipher(const char* seed, const char* delimiter);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
