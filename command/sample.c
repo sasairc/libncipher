@@ -81,8 +81,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
         free(buf[i]);
         i++;
     }
-//  if (mode == 1)
-        putchar('\n');
+    putchar('\n');
     free(buf);
 
     return 0;
