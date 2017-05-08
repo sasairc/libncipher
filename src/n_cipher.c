@@ -80,6 +80,7 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
 
     char*       s       = SEED,         /* default seed */
         *       d       = DELIMITER,    /* default delimiter */
+        *       d2      = NULL,
         *       tmp     = NULL;
 
     list_t*     t1      = NULL,
@@ -139,9 +140,10 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
      * check delimiter
      */
     i = j = 0;
+    d2 = d;
     t1 = start;
     while (i < decimal) {
-        d = (char*)delimiter;
+        d = d2;
         while (*d != '\0') {
             j = mblen(d, MB_CUR_MAX);
             if (memcmp(t1->character, d, j) == 0)
