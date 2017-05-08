@@ -9,7 +9,7 @@ EXTRAVERSION = -devel
 LINKERNAME   = libncipher.so
 SONAME       = $(LINKERNAME).$(VERSION)
 REALNAME     = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
-LOCALE       = ja_JP.UTF-8
+LOCALE       =
 
 SRCS         = $(wildcard *.c)
 OBJS         = $(SRCS:.c=.o)
