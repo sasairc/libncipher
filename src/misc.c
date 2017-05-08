@@ -29,18 +29,18 @@
 
 int mbstrlen_without_byte(char* src)
 {
-    int     i   = 0,
-            ch  = 0,
+    int     ch  = 0,
             len = 0;
+
+    char*   p   = src;
 
     setlocale(LC_CTYPE, LOCALE);
 
-    while (src[i] != '\0') {
-        if ((ch = mblen(&src[i], MB_CUR_MAX)) < 0)
-            return 0;
-
+    while (*p != '\0') {
+        if ((ch = mblen(p, MB_CUR_MAX)) < 0)
+            return -1;
         len++;
-        i += ch;
+        p += ch;
     }
 
     return len - 1;

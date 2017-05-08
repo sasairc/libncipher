@@ -87,6 +87,9 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
           *     t2      = NULL,
           *     start   = NULL;
 
+    /*
+     * specfiles arguments?
+     */
     if (seed != NULL) {
         s = (char*)seed;
         if (mbstrlen_without_byte(s) < 1)
@@ -108,9 +111,10 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
 
         return -3;
     }
+    memset(tmp, '\0', strlen(s) + 1);
     memcpy(tmp, s, strlen(s));
-    tmp[strlen(tmp)] = '\0';
     if ((decimal = create_table(tmp, &t1, &start)) < 0) {
+        fprintf(stdout, "decimal = %d\n", decimal);
         free(tmp);
 
         return -4;
@@ -128,34 +132,34 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
         while (j < decimal) {
             if (strcmp_lite(t1->character, t2->character) == 0)
                 ret++;
-
             t2 = t2->next;
             j++;
         }
         t1 = t1->next;
         i++;
     }
+    ret -= decimal;
 
     /*
      * check delimiter
      */
-    i = j = 0;
     d2 = d;
+    i = j = 0;
     t1 = start;
-    while (i < decimal) {
+    while (t1 != NULL) {
         d = d2;
         while (*d != '\0') {
             j = mblen(d, MB_CUR_MAX);
             if (memcmp(t1->character, d, j) == 0)
                 ret++;
-                d += j;
+            d += j;
         }
         t1 = t1->next;
         i++;
     }
     release_table(start);
 
-    return ret - decimal;
+    return ret;
 }
 
 static
@@ -164,9 +168,8 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
     if (n_cipher == NULL)
         return -1;
 
-    char*   p   = NULL;
-
-    size_t  len;
+    char*   s   = SEED,         /* default seed */
+        *   d   = DELIMITER;    /* default delimiter */
 
     /*
      * release exist seed & delimiter
@@ -183,41 +186,35 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
     /*
      * configure seed
      */
-    if (seed == NULL)
-        p = SEED;
-    else
-        p = (char*)seed;
+    if (seed != NULL)
+        s = (char*)seed;
 
-    len = strlen(p);
     if (((*n_cipher)->seed = (char*)
-                malloc(sizeof(char) * (len + 1))) == NULL) {
+                malloc(sizeof(char) * (strlen(s) + 1))) == NULL) {
         fprintf(stderr, "%s: %s: %d: config_n_cipher(): malloc(): %s\n",
                 LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         goto ERR;
     } else {
-        memset((*n_cipher)->seed, '\0', sizeof(char) * (len + 1));
-        memcpy((*n_cipher)->seed, p, len);
+        memset((*n_cipher)->seed, '\0', strlen(s) + 1);
+        memcpy((*n_cipher)->seed, s, strlen(s));
     }
 
     /*
      * configure delimiter
      */
-    if (delimiter == NULL)
-        p = DELIMITER;
-    else
-        p = (char*)delimiter;
+    if (delimiter != NULL)
+        d = (char*)delimiter;
 
-    len = strlen(p);
     if (((*n_cipher)->delimiter = (char*)
-                malloc(sizeof(char) * (len + 1))) == NULL) {
+                malloc(sizeof(char) * (strlen(d) + 1))) == NULL) {
         fprintf(stderr, "%s: %s: %d: config_n_cipher(): malloc(): %s\n",
                 LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         goto ERR;
     } else {
-        memset((*n_cipher)->delimiter, '\0', sizeof(char) * (len + 1));
-        memcpy((*n_cipher)->delimiter, p, len);
+        memset((*n_cipher)->delimiter, '\0', strlen(d) + 1);
+        memcpy((*n_cipher)->delimiter, d, strlen(d));
     }
 
     return 0;
