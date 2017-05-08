@@ -32,6 +32,7 @@
 #include <errno.h>
 
 #define LIBNAME         "libncipher"
+#define SEED_MAX_LEN    128
 
 static int check_argument_n_cipher(const char* seed, const char* delimiter);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
@@ -88,13 +89,15 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
      */
     if (seed != NULL) {
         s = (char*)seed;
-        if (mbstrlen_without_byte(s) < 1)
-            return -1;
+        if (mbstrlen(s) < 2)
+            return S_TOO_SHORT;
+        if (mbstrlen(s) > SEED_MAX_LEN)
+            return S_TOO_LONG;
     }
     if (delimiter != NULL) {
         d = (char*)delimiter;
-        if (mbstrlen_without_byte(d) < 0)
-            return -2;
+        if (mbstrlen(d) < 1)
+            return D_TOO_SHORT;
     }
 
     /*
@@ -105,15 +108,14 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
         fprintf(stderr, "%s: %s: %d: check_seed_overlap_n_cipher(): malloc(): %s\n",
                 LIBNAME, __FILE__, __LINE__, strerror(errno));
 
-        return -3;
+        return -4;
     }
     memset(tmp, '\0', strlen(s) + 1);
     memcpy(tmp, s, strlen(s));
     if ((decimal = create_table(tmp, &t1, &start)) < 0) {
-        fprintf(stdout, "decimal = %d\n", decimal);
         free(tmp);
 
-        return -4;
+        return -5;
     }
     free(tmp);
     tmp = NULL;

@@ -40,7 +40,7 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
     list_t*     table   = NULL,
           *     start   = NULL;
 
-    if (mbstrlen_without_byte(seed) < 1)
+    if (mbstrlen(seed) < 2)
         return -1;
 
     if ((table = (list_t*)
@@ -202,7 +202,7 @@ int decode_table(char* string, double base, list_t* table, list_t* start)
     size_t  byte    = 0,
             sum     = 0;
 
-    digit = mbstrlen_without_byte(string);
+    digit = mbstrlen(string) - 1;
     while (*string != '\0') {
         i = byte = 0;
         code = (unsigned char)*string;

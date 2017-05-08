@@ -158,10 +158,25 @@ int main(int argc, char* argv[])
 
     /* checking manually specifies, seed and delimiter */
     if (seed != NULL || delimiter != NULL) {
-        if (n_cipher->check_argument(seed, delimiter) != 0) {
-            fprintf(stderr, "%s: invalid seed or delimiter\n",
-                    PROGNAME);
-            status = 1; goto RELEASE;
+        switch (n_cipher->check_argument(seed, delimiter)) {
+            case    0:
+                break;
+            case    S_TOO_SHORT:
+                fprintf(stderr, "%s: seed too short: %s\n",
+                        PROGNAME, seed);
+                status = 1; goto RELEASE;
+            case    D_TOO_SHORT:
+                fprintf(stderr, "%s: delimiter too short: %s\n",
+                    PROGNAME, delimiter);
+                status = 1; goto RELEASE;
+            case    S_TOO_LONG:
+                fprintf(stderr, "%s: seed too long: %s\n",
+                        PROGNAME, seed);
+                status = 1; goto RELEASE;
+            default:
+                fprintf(stderr, "%s: invalid seed or delimiter\n",
+                        PROGNAME);
+                status = 1; goto RELEASE;
         }
     }
 

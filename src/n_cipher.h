@@ -32,6 +32,13 @@ extern "C" {
 #define SEED        "にゃんぱす\0" /* default seed */
 #define DELIMITER   "〜\0"         /* default delimiter */
 
+/*
+ * return value of check_argument()
+ */
+#define S_TOO_SHORT -1  /* seed too short */
+#define S_TOO_LONG  -2  /* seed too long */
+#define D_TOO_SHORT -3  /* delimiter too long */
+
 typedef struct N_CIPHER {
     char*   seed;
     char*   delimiter;
