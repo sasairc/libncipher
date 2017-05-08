@@ -36,6 +36,7 @@
 
 static int check_argument_n_cipher(const char* seed, const char* delimiter);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
+static int ready_n_cipher(N_CIPHER** n_cipher);
 static char* encode_n_cipher(N_CIPHER** n_cipher, const char* string);
 static char* decode_n_cipher(N_CIPHER** n_cipher, const char* string);
 static char* version_n_cipher(void);
@@ -55,8 +56,10 @@ int init_n_cipher(N_CIPHER** n_cipher)
 
     nc->seed            = NULL;
     nc->delimiter       = NULL;
+    nc->table           = NULL;
     nc->check_argument  = check_argument_n_cipher;
     nc->config          = config_n_cipher;
+    nc->ready           = ready_n_cipher;
     nc->encode          = encode_n_cipher;
     nc->decode          = decode_n_cipher;
     nc->version         = version_n_cipher;
@@ -112,7 +115,7 @@ int check_argument_n_cipher(const char* seed, const char* delimiter)
     }
     memset(tmp, '\0', strlen(s) + 1);
     memcpy(tmp, s, strlen(s));
-    if ((decimal = create_table(tmp, &t1, &start)) < 0) {
+    if ((decimal = create_table(tmp, &start)) < 0) {
         free(tmp);
 
         return -5;
@@ -180,6 +183,11 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
         free((*n_cipher)->delimiter);
         (*n_cipher)->delimiter = NULL;
     }
+    if ((*n_cipher)->table != NULL) {
+        release_table((*n_cipher)->table->start);
+        free((*n_cipher)->table);
+        (*n_cipher)->table = NULL;
+    }
 
     /*
      * configure seed
@@ -215,6 +223,24 @@ int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter
         memcpy((*n_cipher)->delimiter, d, strlen(d));
     }
 
+    /*
+     * configure table
+     */
+    if (((*n_cipher)->table = (struct TABLE*)
+                malloc(sizeof(struct TABLE))) == NULL) {
+        fprintf(stderr, "%s: %s: %d: config_n_cipher(): malloc(): %s\n",
+                LIBNAME, __FILE__, __LINE__, strerror(errno));
+
+        goto ERR;
+    }
+    if (((*n_cipher)->table->decimal = create_table((*n_cipher)->seed,
+                    &(*n_cipher)->table->start)) < 0) {
+        fprintf(stderr, "%s: %s: %d: config_n_cipher(): create_table(): failure\n",
+                LIBNAME, __FILE__, __LINE__);
+
+        goto ERR;
+    }
+
     return 0;
 
 ERR:
@@ -226,18 +252,37 @@ ERR:
         free((*n_cipher)->delimiter);
         (*n_cipher)->delimiter = NULL;
     }
+    if ((*n_cipher)->table != NULL) {
+        release_table((*n_cipher)->table->start);
+        free((*n_cipher)->table);
+        (*n_cipher)->table = NULL;
+    }
 
     return -2;
 }
 
 static
+int ready_n_cipher(N_CIPHER** n_cipher)
+{
+    if (n_cipher == NULL)
+        return -1;
+
+    if ((*n_cipher)->seed == NULL || (*n_cipher)->delimiter == NULL)
+        return -2;
+
+    if (((*n_cipher)->table == NULL) || (*n_cipher)->table->start == NULL)
+        return -3;
+
+    /* ready */
+    return 0;
+}
+
+static
 char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
 {
-    if ((n_cipher == NULL || string == NULL)
-            || (*n_cipher)->seed == NULL || (*n_cipher)->delimiter == NULL)
+    if ((n_cipher == NULL || string == NULL) ||
+                (*n_cipher)->ready(n_cipher) < 0)
         return NULL;
-
-    int         decimal = 0;
 
     size_t      x_bufl  = BUFLEN,
                 delmlen = 0,
@@ -251,13 +296,6 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
                 length  = 0;
 
     gunichar*   cpoints = NULL;
-
-    list_t*     table   = NULL,
-          *     start   = NULL;
-
-    /* convert seed to table */
-    if ((decimal = create_table((*n_cipher)->seed, &table, &start)) < 0)
-        return NULL;
 
     /* get string length */
     length = g_utf8_strlen(string, -1);
@@ -280,8 +318,8 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
     /* convert ucs4 to table */
     i = 0;
     while (i < length) {
-        if ((tmp = encode_table(
-                        (unsigned int)cpoints[i], decimal, table, start)) == NULL)
+        if ((tmp = encode_table((unsigned int)cpoints[i],
+                        (*n_cipher)->table->decimal, (*n_cipher)->table->start)) == NULL)
             goto ERR;
 
         destlen = strlen(dest);
@@ -314,7 +352,6 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
 
     /* release memory */
     g_free(cpoints);
-    release_table(start);
 
     return dest;
 
@@ -328,7 +365,6 @@ ERR:
         dest = NULL;
     }
     g_free(cpoints);
-    release_table(start);
 
     return NULL;
 }
@@ -336,12 +372,11 @@ ERR:
 static
 char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
 {
-    if ((n_cipher == NULL || string == NULL)
-            || (*n_cipher)->seed == NULL || (*n_cipher)->delimiter == NULL)
+    if ((n_cipher == NULL || string == NULL) ||
+                (*n_cipher)->ready(n_cipher) < 0)
         return NULL;
     
-    int         ret     = 0,
-                decimal = 0;
+    int         ret     = 0;
 
     size_t      x_bufl  = BUFLEN,
                 destlen = 0,
@@ -353,13 +388,6 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
 
     gunichar    cpoint  = 0;
     gchar*      buf     = NULL;
-
-    list_t*     table   = NULL,
-          *     start   = NULL;
- 
-    /* convert seed to table */
-    if ((decimal = create_table((*n_cipher)->seed, &table, &start)) < 0)
-        return NULL;
 
     /* allocate memory */
     if ((buf = (gchar*)
@@ -395,8 +423,10 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
     token = mbstrtok(strtmp, (*n_cipher)->delimiter);
     while (token != NULL) {
         /* get ucs4 codepint */
-        if ((ret = decode_table(token, decimal, table, start)) < 0)
+        if ((ret = decode_table(token,
+                        (*n_cipher)->table->decimal, (*n_cipher)->table->start)) < 0)
             goto ERR;
+
         cpoint = (gunichar)ret;
         /* convert ucs4 to character */
         blklen = g_unichar_to_utf8(cpoint, buf);
@@ -427,7 +457,6 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
         free(strtmp);
         buf = NULL;
     }
-    release_table(start);
 
     return dest;
 
@@ -444,7 +473,6 @@ ERR:
         free(strtmp);
         buf = NULL;
     }
-    release_table(start);
 
     return NULL;
 }
@@ -471,6 +499,11 @@ void release_n_cipher(N_CIPHER* n_cipher)
     if (n_cipher->delimiter != NULL) {
         free(n_cipher->delimiter);
         n_cipher->delimiter = NULL;
+    }
+    if (n_cipher->table != NULL) {
+        release_table(n_cipher->table->start);
+        free(n_cipher->table);
+        n_cipher->table = NULL;
     }
     if (n_cipher != NULL) {
         free(n_cipher);

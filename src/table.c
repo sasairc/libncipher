@@ -30,7 +30,7 @@
 #include <math.h>
 #include <errno.h>
 
-int create_table(char* seed, list_t** dest_table, list_t** dest_start)
+int create_table(char* seed, list_t** dest)
 {
     int         i       = 0,
                 j       = 0,
@@ -101,8 +101,7 @@ int create_table(char* seed, list_t** dest_table, list_t** dest_start)
         i++;
         seed += byte;
     }
-    *dest_start = start;
-    *dest_table = table;
+    *dest = start;
 
     return i;
 
@@ -112,9 +111,9 @@ ERR:
     return -3;
 }
 
-char* encode_table(int cpoint, int base, list_t* table, list_t* start)
+char* encode_table(int cpoint, int base, list_t* start)
 {
-    if (table == NULL || start == NULL)
+    if (start == NULL)
         return NULL;
 
     int     y       = 0,
@@ -125,6 +124,8 @@ char* encode_table(int cpoint, int base, list_t* table, list_t* start)
 
     char*   dest    = NULL,
         **  tmp     = NULL;
+
+    list_t* table   = NULL;
 
     if ((tmp = (char**)
                 malloc(sizeof(char*) * y_bufl)) == NULL) {
@@ -190,17 +191,17 @@ ERR:
     return NULL;
 }
 
-int decode_table(char* string, double base, list_t* table, list_t* start)
+int decode_table(char* string, double base, list_t* start)
 {
     int     i       = 0,
             code    = 0;
-
-    short   iflag   = 0;
 
     double  digit   = 0;
 
     size_t  byte    = 0,
             sum     = 0;
+
+    list_t* table   = NULL;
 
     digit = mbstrlen(string) - 1;
     while (*string != '\0') {
