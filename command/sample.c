@@ -65,6 +65,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
 
         return -1;
     }
+    buf[lines - 1][strlen(buf[lines - 1]) - 1] = '\0';
     i = 0;
     while (i < lines) {
         if ((str = proc(&n_cipher, buf[i])) == NULL) {
@@ -80,6 +81,8 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
         free(buf[i]);
         i++;
     }
+//  if (mode == 1)
+        putchar('\n');
     free(buf);
 
     return 0;
