@@ -24,6 +24,10 @@
 
 #ifndef N_CIPHER_H
 #define N_CIPHER_H
+#ifdef  __cplusplus
+extern "C" {
+/* __cplusplus */
+#endif
 
 #define SEED        "にゃんぱす\0" /* default seed */
 #define DELIMITER   "〜\0"         /* default delimiter */
@@ -41,5 +45,9 @@ typedef struct N_CIPHER {
 
 extern int init_n_cipher(N_CIPHER** n_cipher);
 
+#ifdef __cplusplus
+}
+/* __cplusplus */
+#endif
 /* N_CIPHER_H */
 #endif
