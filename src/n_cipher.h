@@ -35,7 +35,7 @@ extern "C" {
 typedef struct N_CIPHER {
     char*   seed;
     char*   delimiter;
-    int     (*check_seed)(const char* seed);
+    int     (*check_argument)(const char* seed, const char* delimiter);
     int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
     char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
     char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);

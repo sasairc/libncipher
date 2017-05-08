@@ -37,7 +37,7 @@
 #define SUBLEVEL        0
 #define EXTRAVERSION    "-devel"
 
-static int check_seed_overlap_n_cipher(const char* seed);
+static int check_argument_n_cipher(const char* seed, const char* delimiter);
 static int config_n_cipher(N_CIPHER** n_cipher, const char* seed, const char* delimiter);
 static char* encode_n_cipher(N_CIPHER** n_cipher, const char* string);
 static char* decode_n_cipher(N_CIPHER** n_cipher, const char* string);
@@ -56,14 +56,14 @@ int init_n_cipher(N_CIPHER** n_cipher)
         return -1;
     }
 
-    nc->seed = NULL;
-    nc->delimiter = NULL;
-    nc->check_seed = check_seed_overlap_n_cipher;
-    nc->config = config_n_cipher;
-    nc->encode = encode_n_cipher;
-    nc->decode = decode_n_cipher;
-    nc->version = version_n_cipher;
-    nc->release = release_n_cipher;
+    nc->seed            = NULL;
+    nc->delimiter       = NULL;
+    nc->check_argument  = check_argument_n_cipher;
+    nc->config          = config_n_cipher;
+    nc->encode          = encode_n_cipher;
+    nc->decode          = decode_n_cipher;
+    nc->version         = version_n_cipher;
+    nc->release         = release_n_cipher;
 
     *n_cipher = nc;
 
@@ -71,42 +71,55 @@ int init_n_cipher(N_CIPHER** n_cipher)
 }   
 
 static
-int check_seed_overlap_n_cipher(const char* seed)
+int check_argument_n_cipher(const char* seed, const char* delimiter)
 {
-    if (seed == NULL)
-        return -1;
-
     int         i       = 0,
                 j       = 0,
                 ret     = 0,
                 decimal = 0;
 
-    char*       tmp     = NULL;
+    char*       s       = SEED,         /* default seed */
+        *       d       = DELIMITER,    /* default delimiter */
+        *       tmp     = NULL;
 
     list_t*     t1      = NULL,
           *     t2      = NULL,
           *     start   = NULL;
 
-    if (mbstrlen_without_byte((char*)seed) < 1)
-        return -2;
+    if (seed != NULL) {
+        s = (char*)seed;
+        if (mbstrlen_without_byte(s) < 1)
+            return -1;
+    }
+    if (delimiter != NULL) {
+        d = (char*)delimiter;
+        if (mbstrlen_without_byte(d) < 0)
+            return -2;
+    }
 
+    /*
+     * create seed table
+     */
     if ((tmp = (char*)
-                malloc(sizeof(char) * (strlen(seed) + 1))) == NULL) {
+                malloc(sizeof(char) * (strlen(s) + 1))) == NULL) {
         fprintf(stderr, "%s: %s: %d: check_seed_overlap_n_cipher(): malloc(): %s\n",
                 LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         return -3;
     }
-
-    memset(tmp, '\0', sizeof(char) * (strlen(seed) + 1));
-    memcpy(tmp, seed, strlen(seed));
-
+    memcpy(tmp, s, strlen(s));
+    tmp[strlen(tmp)] = '\0';
     if ((decimal = create_table(tmp, &t1, &start)) < 0) {
         free(tmp);
 
         return -4;
     }
+    free(tmp);
+    tmp = NULL;
 
+    /*
+     * check seed
+     */
     t1 = start;
     while (i < decimal) {
         j = 0;
@@ -121,7 +134,23 @@ int check_seed_overlap_n_cipher(const char* seed)
         t1 = t1->next;
         i++;
     }
-    free(tmp);
+
+    /*
+     * check delimiter
+     */
+    i = j = 0;
+    t1 = start;
+    while (i < decimal) {
+        d = (char*)delimiter;
+        while (*d != '\0') {
+            j = mblen(d, MB_CUR_MAX);
+            if (memcmp(t1->character, d, j) == 0)
+                ret++;
+                d += j;
+        }
+        t1 = t1->next;
+        i++;
+    }
     release_table(start);
 
     return ret - decimal;

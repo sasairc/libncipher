@@ -16,7 +16,7 @@ typedef struct N_CIPHER {
 .br
     char*   delimiter;
 .br
-    int     (*check_seed)(const char* seed);
+    int     (*check_argument)(const char* seed, const char* delimiter);
 .br
     int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
 .br
@@ -51,10 +51,10 @@ char* delimiter
 設定済みのデリミタ値。
 初期化のみで未設定の場合はNULLポインタ。
 .TP
-int check_seed(const char* seed)
-文字列がシード値として有効であるかを確認する関数。
-ここでの有効な文字列とは、文字の重複が存在せず、2文字かそれ以上の文字数を満たした文字列の事を指す。
-また、この関数でチェックするのはシード値の有効性のみであるため、デリミタ値とのコンフリクトは予期しない事に注意。
+int check_argument(const char* seed, const char* argument)
+シード値およびデリミタ値が有効であるかを確認する関数。
+ここでの有効な値とは、シード値とデリミタ値ともに重複する文字列が存在しないものを指す。
+また、文字数はシード値は2文字かそれ以上、デリミタ値は1文字かそれ以上を満たせばならない。
 戻り値は、有効な文字列であれば偽、無効であれば正の整数、処理中の例外であれば負の整数がセットされる。
 .br
 .TP

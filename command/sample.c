@@ -152,10 +152,10 @@ int main(int argc, char* argv[])
     init_n_cipher(&n_cipher);
 
     /* checking manually specifies, seed and delimiter */
-    if (seed != NULL) {
-        if (n_cipher->check_seed(seed) != 0) {
-            fprintf(stderr, "%s: invalid seed: \n",
-                    PROGNAME, seed);
+    if (seed != NULL || delimiter != NULL) {
+        if (n_cipher->check_argument(seed, delimiter) != 0) {
+            fprintf(stderr, "%s: invalid seed or delimiter\n",
+                    PROGNAME);
             status = 1; goto RELEASE;
         }
     }

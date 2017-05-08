@@ -37,7 +37,7 @@ seed値は128文字まで確認済みです。
 typedef struct N_CIPHER {
     char*   seed;
     char*   delimiter;
-    int     (*check_seed)(const char* seed);
+    int     (*check_argument)(const char* seed, const char* delimiter);
     int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
     char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
     char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);
@@ -54,9 +54,9 @@ int init_n_cipher(N_CIPHER** n_cipher);
 
 ### N_CIPHER
 
-#### int check_seed(const char* seed)
+#### int check_argument(const char\* seed, const char\* delimiter)
 
-seed文字列の有効性をチェックします。戻り値は、成功の場合は0、重複する文字がある場合は正の整数、その他のエラーの場合は負の整数です。この関数はseed文字列の有効性のみ確認するため、delimiter文字列とのコンフリクトは予期しません。
+seed文字列および、delimiter文字列の有効性をチェックします。戻り値は、成功の場合は0、重複する文字がある場合は正の整数、その他のエラーの場合は負の整数です。
 
 #### int config(N_CIPHER\*\* n_cipher, const char\* seed, const char\* delimiter)
 
@@ -125,10 +125,15 @@ int main(void)
     /*
      * reconfigure, manually specifies, seed and delimiter
      */
-    fprintf(stdout, "\n*** checking seed ***\ngood = %d  (おうどん)\nbad  = %d  (てんぷらうどん)\nbad  = %d (ん)\n\n",
-            n_cipher->check_seed("おうどん"),
-            n_cipher->check_seed("てんぷらうどん"),
-            n_cipher->check_seed("ん"));
+    fprintf(stdout, "\n*** checking seed / delimiter ***\n\
+good = %d (おうどん)\n\
+bad  = %d (てんぷらうどん)\n\
+bad  = %d (うどん, たんめん)\n\
+bad  = %d (ん)\n\n",
+            n_cipher->check_argument("おうどん", NULL),
+            n_cipher->check_argument("てんぷらうどん", NULL),
+            n_cipher->check_argument("うどん", "たんめん"),
+            n_cipher->check_argument("ん", NULL));
 
     n_cipher->config(&n_cipher, "おうどん", "そば");
 
@@ -171,9 +176,10 @@ encode: ぱすすぱぱす〜すににゃゃゃ〜すににににぱ〜すにに
 decode: サンプルテキストって何にするか結構悩むよね…
 strcmp: 0
 
-*** checking seed ***
-good = 0  (おうどん)
-bad  = 2  (てんぷらうどん)
+*** checking seed / delimiter ***
+good = 0 (おうどん)
+bad  = 2 (てんぷらうどん)
+bad  = 2 (うどん, たんめん)
 bad  = -2 (ん)
 
 origin: サンプルテキストって何にするか結構悩むよね…
