@@ -32,13 +32,15 @@
 
 int create_table(char* seed, list_t** dest)
 {
-    int         i       = 0,
-                j       = 0,
-                code    = 0;
-    size_t      byte    = 0;
+    int             i       = 0,
+                    no      = 0;
 
-    list_t*     table   = NULL,
-          *     start   = NULL;
+    unsigned char   code    = '\0';
+
+    size_t          byte    = 0;
+
+    list_t*         table   = NULL,
+          *         start   = NULL;
 
     if (mbstrlen(seed) < 2)
         return -1;
@@ -49,61 +51,68 @@ int create_table(char* seed, list_t** dest)
                 __FILE__, __LINE__, strerror(errno));
 
         return -2;
+    } else {
+        table->next = NULL;
+        start = table;
     }
 
-    start = table;
     while (*seed != '\0') {
         code = (unsigned char)*seed;
 
-        if (code < 0x80) {
+        /*
+         * get character size
+         */
+        if ((code & 0x80) == 0x00)
             byte = 1;
-        } else if (code < 0xC0) {
-            seed += 1;
-            continue;
-        } else if (code < 0xE0) {
+        else if ((code & 0xE0) == 0xC0)
             byte = 2;
-        } else if (code < 0xF0) {
+        else if ((code & 0xF0) == 0xE0)
             byte = 3;
-        } else {
+        else if ((code & 0xF8) == 0xF0)
             byte = 4;
-        }
-
-        if ((table->next = (list_t*)
-                    malloc(sizeof(list_t))) == NULL) {
-            fprintf(stderr, "%s: %d: create_table(): malloc(): %s\n",
-                    __FILE__, __LINE__, strerror(errno));
-
+        else if ((code & 0xFC) == 0xF8)
+            byte = 5;
+        else if ((code & 0xFE) == 0xFC)
+            byte = 6;
+        else
             goto ERR;
-        }
 
-        table = table->next;
-        table->number = i;
-
+        /*
+         * set table
+         */
+        table->number = no;
         if ((table->character = (char*)
                     malloc(sizeof(char) * (byte + 1))) == NULL) {
             fprintf(stderr, "%s: %d: create_table(): malloc(): %s\n",
                     __FILE__, __LINE__, strerror(errno));
 
             goto ERR;
+        } else {
+            i = 0;
+            while (i < byte) {
+                *(table->character + i) = *(seed + i);
+                i++;
+            }
+            *(table->character + i) = '\0';
         }
 
-        j = 0;
-        while (j < byte) {
-            *(table->character + j) = *(seed + j);
-            j++;
-        }
-        *(table->character + j) = '\0';
-
-        table->next = NULL;
-        if (i == 0)
-            start = table;
-
-        i++;
         seed += byte;
+        if (*seed != '\0') {
+            if ((table->next = (list_t*)
+                        malloc(sizeof(list_t))) == NULL) {
+                fprintf(stderr, "%s: %d: create_table(): malloc(): %s\n",
+                        __FILE__, __LINE__, strerror(errno));
+
+                goto ERR;
+            }
+            table = table->next;
+            table->next = NULL;
+        }
+        no++;
     }
     *dest = start;
 
-    return i;
+    return no;
 
 ERR:
     release_table(start);
@@ -120,7 +129,7 @@ char* encode_table(int cpoint, int base, list_t* start)
             fragmnt = 0;
 
     size_t  y_bufl  = BUFLEN,
-            destlen = 0;
+            len     = 0;
 
     char*   dest    = NULL,
         **  tmp     = NULL;
@@ -152,27 +161,28 @@ char* encode_table(int cpoint, int base, list_t* start)
         table = start;
         while (fragmnt != table->number)
             table = table->next;
-
         tmp[y] = table->character;
-        destlen += strlen(table->character);
+        len += strlen(table->character);
 
         cpoint /= base;
         y++;
     }
 
     if ((dest = (char*)
-                malloc(sizeof(char) * (destlen + 1))) == NULL) {
+                malloc(sizeof(char) * (len + 1))) == NULL) {
         fprintf(stderr, "%s: %d: encode_table(): malloc(): %s\n",
                 __FILE__, __LINE__, strerror(errno));
 
         goto ERR;
-    }
-
-    y -= 2;
-    memcpy(dest, tmp[y + 1], strlen(tmp[y + 1]) + 1);
-    while (y >= 0) {
-        memcpy(dest + strlen(dest), tmp[y], strlen(tmp[y]) + 1);
+    } else {
         y--;
+        len = 0;
+        while (y >= 0) {
+            memcpy(dest + len, tmp[y], strlen(tmp[y]) + 1);
+            len = strlen(dest);
+            y--;
+        }
+        *(dest + len) = '\0';
     }
     free(tmp);
 
@@ -193,44 +203,56 @@ ERR:
 
 int decode_table(char* string, double base, list_t* start)
 {
-    int     i       = 0,
-            code    = 0;
+    int             i       = 0;
 
-    double  digit   = 0;
+    unsigned char   code    = '\0';
 
-    size_t  byte    = 0,
-            sum     = 0;
+    double          digit   = 0;
 
-    list_t* table   = NULL;
+    size_t          byte    = 0,
+                    sum     = 0;
+
+    list_t*         table   = NULL;
 
     digit = mbstrlen(string) - 1;
     while (*string != '\0') {
-        i = byte = 0;
         code = (unsigned char)*string;
 
-        if (code < 0x80) {
+        /*
+         * get character size
+         */
+        if ((code & 0x80) == 0x00)
             byte = 1;
-        } else if (code < 0xC0) {
-            string += 1;
-            continue;
-        } else if (code < 0xE0) {
+        else if ((code & 0xE0) == 0xC0)
             byte = 2;
-        } else if (code < 0xF0) {
+        else if ((code & 0xF0) == 0xE0)
             byte = 3;
-        } else {
+        else if ((code & 0xF8) == 0xF0)
             byte = 4;
-        }
+        else if ((code & 0xFC) == 0xF8)
+            byte = 5;
+        else if ((code & 0xFE) == 0xFC)
+            byte = 6;
+        else
+            return -1;
 
+        /*
+         * search character
+         */
         table = start;
-        while (table->next != NULL) {
+        while (table != NULL) {
+            i = 0;
             while (*(string + i) == *(table->character + i))
                 i++;
-
             if (i >= byte)
                 break;
             else
                 table = table->next;
         }
+        /* invalid string */
+        if (table == NULL && i == 0)
+            return -2;
+
         sum += table->number * (int)pow((double)base, (double)digit);
         string += byte;
         digit--;
