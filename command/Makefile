@@ -25,9 +25,9 @@ endif
 shared-sample: $(OBJS)
 ifeq ($(CMDLINE), 0)
 	@echo "  BUILD   $@"
-	@$(CC) $^ -o $(TARGET) $(DEFLDFLAGS) -lncipher -DWITH_SHARED
+	@$(CC) $^ -o $(TARGET) -lncipher -DWITH_SHARED
 else
-	$(CC) $^ -o $(TARGET) $(DEFLDFLAGS) -lncipher -DWITH_SHARED
+	$(CC) $^ -o $(TARGET) -lncipher -DWITH_SHARED
 endif
 
 %.o: %.c

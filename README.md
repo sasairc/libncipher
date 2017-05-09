@@ -13,11 +13,16 @@ seed値は128文字まで確認済みです。
 
 ## Requirements
 
+### libncipher
+
 * GNU Make (gmake)
 * gcc or clang/llvm
 * pkg-config >= 0.26
 * GLib >= 2.0
 
+### Sample program
+
+* libncipher >= 2.1.0
 
 ## Install
 
