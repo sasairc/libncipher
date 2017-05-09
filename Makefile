@@ -20,7 +20,7 @@ all clean:
 	@$(MAKE) -C ./src	$@
 	@$(MAKE) -C ./command	$@
 
-build-shared-sample:
+shared-sample:
 	@$(MAKE) -C ./command	$@
 
 install-man:
@@ -38,6 +38,7 @@ install: install-man	\
 	 install-header
 
 .PHONY: all		\
+	shared-sample	\
 	install		\
 	install-man	\
 	install-doc	\

@@ -24,7 +24,8 @@ seed値は128文字まで確認済みです。
 ```shellsession
 % make
 # make install
-% build-shared-sample    # optional
+% make shared-sample    # optional
+% cp command/sample ~/local/bin/n_cipher_sample # optional
 ```
 
 
