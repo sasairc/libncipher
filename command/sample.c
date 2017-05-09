@@ -75,7 +75,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
     while (i < lines) {
         if ((str = proc(&n_cipher, buf[i])) == NULL) {
             fprintf(stderr, "%s: %.*s: invalid input\n",
-                    PROGNAME, strlen(buf[i]), buf[i]);
+                    PROGNAME, strlen(buf[i]) - 1, buf[i]);
 
             goto ERR;
         } else {
