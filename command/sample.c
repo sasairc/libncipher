@@ -1,5 +1,27 @@
 /*
- * sample.c - n_cipher sample program
+ * n_cipher sample program
+ *
+ * sample.c
+ * 
+ * Copyright (c) 2017 sasairc
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+ * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #ifdef  WITH_SHARED
@@ -16,6 +38,8 @@
 #include <errno.h>
 
 #define PROGNAME    "n_cipher sample program"
+#define AUTHOR      "sasairc"
+#define MAIL_TO     "sasairc@ssiserver.moe.hm"
 
 void print_usage(N_CIPHER* n_cipher)
 {
@@ -33,8 +57,11 @@ Mandatory arguments to long options are mandatory for short options too.\n\
   -m,  --delimiter=STR       specify delimiter string (default = %s)\n\
 \n\
        --help                display this help and exit\n\
-       --version             output version infomation and exit\n",
-       PROGNAME, n_cipher->version(), n_cipher->seed, n_cipher->delimiter);
+       --version             output version infomation and exit\n\
+\n\
+Report %s bugs to %s <%s>\n", 
+        PROGNAME, n_cipher->version(), n_cipher->seed, n_cipher->delimiter,
+        PROGNAME, AUTHOR, MAIL_TO);
     n_cipher->release(n_cipher);
 
     exit(0);
