@@ -2,24 +2,30 @@
 #    Makefile for libncipher
 #
 
-VERSION    = 2
-PATCHLEVEL = 0
-SUBLEVEL   = 0
-LINKERNAME = libncipher.so
-SONAME     = $(LINKERNAME).$(VERSION)
-REALNAME   = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
+VERSION      = 2
+PATCHLEVEL   = 1
+SUBLEVEL     = 0
+EXTRAVERSION =
+LINKERNAME   = libncipher.so
+SONAME       = $(LINKERNAME).$(VERSION)
+REALNAME     = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
+LOCALE       =
 
-SRCS       = $(wildcard *.c)
-OBJS       = $(SRCS:.c=.o)
-LIBS       = -lm `pkg-config --cflags --libs glib-2.0` 
+SRCS         = $(wildcard *.c)
+OBJS         = $(SRCS:.c=.o)
+LIBS         = -lm `pkg-config --cflags --libs glib-2.0` 
 
-DEFCFLAGS  = -DBUFLEN=$(BUFLEN)		\
-		-DLOCALE=\"$(LOCALE)\"	\
-		-fPIC			\
+DEFCFLAGS    = -DVERSION=$(VERSION)                 \
+		-DPATCHLEVEL=$(PATCHLEVEL)          \
+		-DSUBLEVEL=$(SUBLEVEL)              \
+		-DEXTRAVERSION=\"$(EXTRAVERSION)\"  \
+		-DBUFLEN=$(BUFLEN)                  \
+		-DLOCALE=\"$(LOCALE)\"              \
+		-fPIC                               \
 	    	$(LIBS)
 
-DEFLDFLAGS = -shared			\
-		-Wl,-soname=$(SONAME)	\
+DEFLDFLAGS   = -shared                              \
+		-Wl,-soname=$(SONAME)               \
 		$(LIBS)	
 
 all: $(REALNAME)

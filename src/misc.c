@@ -27,23 +27,24 @@
 #include <string.h>
 #include <locale.h>
 
-int mbstrlen_without_byte(char* src)
+int mbstrlen(const char* src)
 {
-    int     i   = 0,
-            ch  = 0,
-            len = 0;
+    int     count   = 0;
+
+    short   size    = 0;
+
+    char*   p   = (char*)src;
 
     setlocale(LC_CTYPE, LOCALE);
 
-    while (src[i] != '\0') {
-        if ((ch = mblen(&src[i], MB_CUR_MAX)) < 0)
-            return 0;
-
-        len++;
-        i += ch;
+    while (*p != '\0') {
+        if ((size = mblen(p, MB_CUR_MAX)) < 0)
+            return -1;
+        p += size;
+        count++;
     }
 
-    return len - 1;
+    return count;
 }
 
 char* mbstrtok(char* str, char* delimiter)

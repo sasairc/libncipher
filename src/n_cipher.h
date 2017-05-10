@@ -24,22 +24,44 @@
 
 #ifndef N_CIPHER_H
 #define N_CIPHER_H
+#ifdef  __cplusplus
+extern "C" {
+/* __cplusplus */
+#endif
 
 #define SEED        "にゃんぱす\0" /* default seed */
 #define DELIMITER   "〜\0"         /* default delimiter */
 
+/*
+ * return value of check_argument()
+ */
+#define S_TOO_SHORT -1  /* seed too short */
+#define S_TOO_LONG  -2  /* seed too long */
+#define D_TOO_SHORT -3  /* delimiter too long */
+
+struct TABLE {
+    int             decimal;
+    struct _LIST_T* start;
+};
+
 typedef struct N_CIPHER {
     char*   seed;
     char*   delimiter;
-    int     (*check_seed)(const char* seed);
+    int     (*check_argument)(const char* seed, const char* delimiter);
     int     (*config)(struct N_CIPHER** n_cipher, const char* seed, const char* delimiter);
+    int     (*ready)(struct N_CIPHER** n_cipher);
     char*   (*encode)(struct N_CIPHER** n_cipher, const char* string);
     char*   (*decode)(struct N_CIPHER** n_cipher, const char* string);
     char*   (*version)(void);
     void    (*release)(struct N_CIPHER* n_cipher);
+    struct TABLE* table;
 } N_CIPHER;
 
 extern int init_n_cipher(N_CIPHER** n_cipher);
 
+#ifdef __cplusplus
+}
+/* __cplusplus */
+#endif
 /* N_CIPHER_H */
 #endif

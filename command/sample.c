@@ -1,8 +1,35 @@
 /*
- * sample.c - n_cipher sample program
+ * n_cipher sample program
+ *
+ * sample.c
+ * 
+ * Copyright (c) 2017 sasairc
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+ * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef  WITH_SHARED
+#include <n_cipher.h>
+#else
 #include "../src/n_cipher.h"
+/* WITH_SHARED */
+#endif
 #include "./file.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +38,8 @@
 #include <errno.h>
 
 #define PROGNAME    "n_cipher sample program"
+#define AUTHOR      "sasairc"
+#define MAIL_TO     "sasairc@ssiserver.moe.hm"
 
 void print_usage(N_CIPHER* n_cipher)
 {
@@ -28,8 +57,11 @@ Mandatory arguments to long options are mandatory for short options too.\n\
   -m,  --delimiter=STR       specify delimiter string (default = %s)\n\
 \n\
        --help                display this help and exit\n\
-       --version             output version infomation and exit\n",
-       PROGNAME, n_cipher->version(), n_cipher->seed, n_cipher->delimiter);
+       --version             output version infomation and exit\n\
+\n\
+Report %s bugs to %s <%s>\n", 
+        PROGNAME, n_cipher->version(), n_cipher->seed, n_cipher->delimiter,
+        PROGNAME, AUTHOR, MAIL_TO);
     n_cipher->release(n_cipher);
 
     exit(0);
@@ -65,6 +97,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
 
         return -1;
     }
+    buf[lines - 1][strlen(buf[lines - 1]) - 1] = '\0';
     i = 0;
     while (i < lines) {
         if ((str = proc(&n_cipher, buf[i])) == NULL) {
@@ -73,16 +106,14 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
 
             goto ERR;
         } else {
-            fprintf(stdout, "%s",
-                    str);
+            fprintf(stdout, "%s", str);
             free(str);
             str = NULL;
         }
         free(buf[i]);
         i++;
     }
-    if (mode == 1)
-        putchar('\n');
+    putchar('\n');
     free(buf);
 
     return 0;
@@ -153,11 +184,26 @@ int main(int argc, char* argv[])
     init_n_cipher(&n_cipher);
 
     /* checking manually specifies, seed and delimiter */
-    if (seed != NULL) {
-        if (n_cipher->check_seed(seed) != 0) {
-            fprintf(stderr, "%s: invalid seed: \n",
-                    PROGNAME, seed);
-            status = 1; goto RELEASE;
+    if (seed != NULL || delimiter != NULL) {
+        switch (n_cipher->check_argument(seed, delimiter)) {
+            case    0:
+                break;
+            case    S_TOO_SHORT:
+                fprintf(stderr, "%s: seed too short: %s\n",
+                        PROGNAME, seed);
+                status = 1; goto RELEASE;
+            case    D_TOO_SHORT:
+                fprintf(stderr, "%s: delimiter too short: %s\n",
+                    PROGNAME, delimiter);
+                status = 1; goto RELEASE;
+            case    S_TOO_LONG:
+                fprintf(stderr, "%s: seed too long: %s\n",
+                        PROGNAME, seed);
+                status = 1; goto RELEASE;
+            default:
+                fprintf(stderr, "%s: invalid seed or delimiter\n",
+                        PROGNAME);
+                status = 1; goto RELEASE;
         }
     }
 

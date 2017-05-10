@@ -21,18 +21,22 @@ function install_all() {
 function run_static_bin() {
 	echo "*** run ***"
 
-	SEED="ほげふがおうどんqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
+	SEED128="1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMあいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマ"
 
 	wget https://raw.githubusercontent.com/sasairc/yasuna/master/quotes/yasuna-quotes
 
 	./command/sample --help
 	./command/sample --version
 
+	echo "*** default seed/delimiter ***"
 	cat yasuna-quotes | ./command/sample -e | ./command/sample -d > dest.txt
 	diff -c yasuna-quotes dest.txt
+	echo "diff: $?"
 
-	cat yasuna-quotes | ./command/sample -e -s "$SEED" | ./command/sample -d -s "$SEED" > dest.txt
+	echo "*** seed128 ***"
+	cat yasuna-quotes | ./command/sample -e -s $SEED128 | ./command/sample -d -s $SEED128 > dest.txt
 	diff -c yasuna-quotes dest.txt
+	echo "diff: $?"
 
 	return $?
 }
