@@ -250,7 +250,7 @@ int decode_table(char* string, double base, list_t* start)
                 table = table->next;
         }
         /* invalid string */
-        if (table == NULL && i == 0)
+        if (table == NULL && i < byte)
             return -2;
 
         sum += table->number * (int)pow((double)base, (double)digit);
