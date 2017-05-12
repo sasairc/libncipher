@@ -25,6 +25,7 @@
 #ifndef MISC_H
 #define MISC_H
 
+extern int get_character_size(unsigned char c);
 extern int mbstrlen(const char* src);
 extern char* mbstrtok(char* str, char* delimiter);
 extern int strcmp_lite(const char* str1, const char* str2);

@@ -27,6 +27,28 @@
 #include <string.h>
 #include <locale.h>
 
+int get_character_size(unsigned char code)
+{
+    size_t  byte    = 0;
+
+    if ((code & 0x80) == 0x00)
+        byte = 1;
+    else if ((code & 0xE0) == 0xC0)
+        byte = 2;
+    else if ((code & 0xF0) == 0xE0)
+        byte = 3;
+    else if ((code & 0xF8) == 0xF0)
+        byte = 4;
+    else if ((code & 0xFC) == 0xF8)
+        byte = 5;
+    else if ((code & 0xFE) == 0xFC)
+        byte = 6;
+    else
+        return -1;
+
+    return byte;
+}
+
 int mbstrlen(const char* src)
 {
     int     count   = 0;

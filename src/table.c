@@ -35,8 +35,6 @@ int create_table(char* seed, list_t** dest)
     int             i       = 0,
                     no      = 0;
 
-    unsigned char   code    = '\0';
-
     size_t          byte    = 0;
 
     list_t*         table   = NULL,
@@ -57,24 +55,10 @@ int create_table(char* seed, list_t** dest)
     }
 
     while (*seed != '\0') {
-        code = (unsigned char)*seed;
-
         /*
          * get character size
          */
-        if ((code & 0x80) == 0x00)
-            byte = 1;
-        else if ((code & 0xE0) == 0xC0)
-            byte = 2;
-        else if ((code & 0xF0) == 0xE0)
-            byte = 3;
-        else if ((code & 0xF8) == 0xF0)
-            byte = 4;
-        else if ((code & 0xFC) == 0xF8)
-            byte = 5;
-        else if ((code & 0xFE) == 0xFC)
-            byte = 6;
-        else
+        if ((byte = get_character_size((unsigned char)*seed)) < 0)
             goto ERR;
 
         /*
@@ -144,6 +128,9 @@ char* encode_table(int cpoint, int base, list_t* start)
         return NULL;
     }
 
+    /*
+     * conversion, decimal to any radix base number
+     */
     while (cpoint > 0) {
         if (y_bufl <= y) {
             y_bufl += BUFLEN;
@@ -168,6 +155,9 @@ char* encode_table(int cpoint, int base, list_t* start)
         y++;
     }
 
+    /*
+     * concat string
+     */
     if ((dest = (char*)
                 malloc(sizeof(char) * (len + 1))) == NULL) {
         fprintf(stderr, "%s: %d: encode_table(): malloc(): %s\n",
@@ -205,8 +195,6 @@ int decode_table(char* string, double base, list_t* start)
 {
     int             i       = 0;
 
-    unsigned char   code    = '\0';
-
     double          digit   = 0;
 
     size_t          byte    = 0,
@@ -216,24 +204,10 @@ int decode_table(char* string, double base, list_t* start)
 
     digit = mbstrlen(string) - 1;
     while (*string != '\0') {
-        code = (unsigned char)*string;
-
         /*
          * get character size
          */
-        if ((code & 0x80) == 0x00)
-            byte = 1;
-        else if ((code & 0xE0) == 0xC0)
-            byte = 2;
-        else if ((code & 0xF0) == 0xE0)
-            byte = 3;
-        else if ((code & 0xF8) == 0xF0)
-            byte = 4;
-        else if ((code & 0xFC) == 0xF8)
-            byte = 5;
-        else if ((code & 0xFE) == 0xFC)
-            byte = 6;
-        else
+        if ((byte = get_character_size((unsigned char)*string)) < 0)
             return -1;
 
         /*
@@ -253,6 +227,9 @@ int decode_table(char* string, double base, list_t* start)
         if (table == NULL && i < byte)
             return -2;
 
+        /*
+         * conversion, any radix base number to decimal
+         */
         sum += table->number * (int)pow((double)base, (double)digit);
         string += byte;
         digit--;
