@@ -229,11 +229,15 @@ strcmp: 0
 
 [844196/n_cipher](https://github.com/844196/n_cipher) - for Ruby
 
-[844196/neo_ncipher](https://github.com/844196/neo_ncipher) - for Go
+[844196/ncipher](https://github.com/844196/ncipher) - for Go
 
 ## Documentation
 
 [844196/ncp_spec](https://github.com/844196/ncp_spec) - Nyanpasu Cipher (N-Cipher) specification
+
+## See Also
+
+[sasairc/bincipher](https://github.com/sasairc/bincipher) -  N-Cipher encode/decode data and print to standard output.
 
 ## License
 
