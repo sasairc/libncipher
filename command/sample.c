@@ -97,12 +97,16 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
 
         return -1;
     }
-    buf[lines - 1][strlen(buf[lines - 1]) - 1] = '\0';
+    /* no data */
+    if (lines == 0)
+        return 0;
+
+    *(*(buf + lines - 1) + strlen(*(buf + lines - 1)) - 1) = '\0';
     i = 0;
     while (i < lines) {
-        if ((str = proc(&n_cipher, buf[i])) == NULL) {
+        if ((str = proc(&n_cipher, *(buf + i))) == NULL) {
             fprintf(stderr, "%s: %.*s: invalid input\n",
-                    PROGNAME, strlen(buf[i]) - 1, buf[i]);
+                    PROGNAME, strlen(*(buf + i)) - 1, *(buf + i));
 
             goto ERR;
         } else {
@@ -110,7 +114,7 @@ int do_proc(N_CIPHER* n_cipher, FILE* fp, short mode)
             free(str);
             str = NULL;
         }
-        free(buf[i]);
+        free(*(buf + i));
         i++;
     }
     putchar('\n');
@@ -122,8 +126,8 @@ ERR:
     if (buf != NULL) {
         lines--;
         while (lines >= 0) {
-            if (buf[lines] != NULL)
-                free(buf[lines]);
+            if (*(buf + lines) != NULL)
+                free(*(buf + lines));
             lines--;
         }
         free(buf);
@@ -214,7 +218,7 @@ int main(int argc, char* argv[])
     if (optind < argc) {
         /* [FILE]... */
         while (optind < argc) {
-            if ((fp = fopen(argv[optind], "r")) == NULL) {
+            if ((fp = fopen(*(argv + optind), "r")) == NULL) {
                 perror("n_cipher sample program: fopen()");
                 status = errno; goto RELEASE;
             }
