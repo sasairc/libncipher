@@ -24,17 +24,27 @@
 
 #ifndef TABLE_H
 #define TABLE_H
+#ifdef  __cplusplus
+extern "C" {
+/* __cplusplus */
+#endif
 
 typedef struct _LIST_T {
     int     number;
     char*   character;
     struct  _LIST_T*    next;
+    struct  _LIST_T*    prev;
 } list_t;
 
 extern int create_table(char* seed, list_t** dest);
-extern char* encode_table(int cpoint, int base, list_t* table);
-extern int decode_table(char* string, double base, list_t* start);
+extern char* encode_table(int cpoint, int base, list_t* start, list_t* end);
+extern int decode_table(char* string, double base, list_t* start, list_t* end);
+extern list_t* seek_table_end(list_t* start);
 extern void release_table(list_t* table);
 
+#ifdef __cplusplus
+}
+/* __cplusplus */
+#endif
 /* TABLE_H */
 #endif

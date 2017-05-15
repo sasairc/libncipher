@@ -51,6 +51,7 @@ int create_table(char* seed, list_t** dest)
         return -2;
     } else {
         table->next = NULL;
+        table->prev = NULL;
         start = table;
     }
 
@@ -89,6 +90,7 @@ int create_table(char* seed, list_t** dest)
 
                 goto ERR;
             }
+            table->next->prev = table;
             table = table->next;
             table->next = NULL;
         }
@@ -104,21 +106,23 @@ ERR:
     return -3;
 }
 
-char* encode_table(int cpoint, int base, list_t* start)
+char* encode_table(int cpoint, int base, list_t* start, list_t* end)
 {
-    if (start == NULL)
+    if (start == NULL || end == NULL)
         return NULL;
 
-    int     y       = 0,
-            fragmnt = 0;
+    int         y       = 0,
+                fragmnt = 0;
 
-    size_t  y_bufl  = BUFLEN,
-            len     = 0;
+    size_t      y_bufl  = BUFLEN,
+                len     = 0;
 
-    char*   dest    = NULL,
-        **  tmp     = NULL;
+    char*       p       = NULL,
+        *       dest    = NULL,
+        **      tmp     = NULL;
 
-    list_t* table   = NULL;
+    list_t*     t1      = NULL,
+          *     t2      = NULL;
 
     if ((tmp = (char**)
                 malloc(sizeof(char*) * y_bufl)) == NULL) {
@@ -142,15 +146,23 @@ char* encode_table(int cpoint, int base, list_t* start)
                 goto ERR;
             }
         }
-
         fragmnt = cpoint % base;
-
-        table = start;
-        while (fragmnt != table->number)
-            table = table->next;
-        tmp[y] = table->character;
-        len += strlen(table->character);
-
+        t1 = start;
+        t2 = end;
+        while (t1 != NULL && t2 != NULL) {
+            if (fragmnt == t1->number) {
+                p = t1->character;
+                break;
+            }
+            if (fragmnt == t2->number) {
+                p = t2->character;
+                break;
+            }
+            t1 = t1->next;
+            t2 = t2->prev;
+        }
+        *(tmp + y) = p;
+        len += strlen(p);
         cpoint /= base;
         y++;
     }
@@ -168,7 +180,7 @@ char* encode_table(int cpoint, int base, list_t* start)
         y--;
         len = 0;
         while (y >= 0) {
-            memcpy(dest + len, tmp[y], strlen(tmp[y]) + 1);
+            memcpy(dest + len, *(tmp + y), strlen(*(tmp + y)) + 1);
             len = strlen(dest);
             y--;
         }
@@ -191,16 +203,18 @@ ERR:
     return NULL;
 }
 
-int decode_table(char* string, double base, list_t* start)
+int decode_table(char* string, double base, list_t* start, list_t* end)
 {
-    int             i       = 0;
+    int             i       = 0,
+                    no      = 0;
 
     double          digit   = 0;
 
     size_t          byte    = 0,
                     sum     = 0;
 
-    list_t*         table   = NULL;
+    list_t*         t1      = NULL,
+          *         t2      = NULL;
 
     digit = mbstrlen(string) - 1;
     while (*string != '\0') {
@@ -213,29 +227,52 @@ int decode_table(char* string, double base, list_t* start)
         /*
          * search character
          */
-        table = start;
-        while (table != NULL) {
+        t1 = start;
+        t2 = end;
+        while (t1 != NULL && t2 != NULL) {
             i = 0;
-            while (*(string + i) == *(table->character + i))
+            while (*(string + i) == *(t1->character + i))
                 i++;
-            if (i >= byte)
+            if (i >= byte) {
+                no = t1->number;
                 break;
-            else
-                table = table->next;
+            }
+            i = 0;
+            while (*(string + i) == *(t2->character + i))
+                i++;
+            if (i >= byte) {
+                no = t2->number;
+                break;
+            }
+            if (t1 == t2) {
+                break;
+            }
+            t1 = t1->next;
+            t2 = t2->prev;
         }
         /* invalid string */
-        if (table == NULL && i < byte)
+        if (t1 == t2 && i < byte)
             return -2;
 
         /*
          * conversion, any radix base number to decimal
          */
-        sum += table->number * (int)pow((double)base, (double)digit);
+        sum += no * (int)pow((double)base, (double)digit);
         string += byte;
         digit--;
     }
 
     return sum;
+}
+
+list_t* seek_table_end(list_t* start)
+{
+    list_t* t1  = start;
+
+    while (t1->next != NULL)
+        t1 = t1->next;
+
+    return t1;
 }
 
 void release_table(list_t* table)

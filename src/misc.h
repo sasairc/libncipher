@@ -24,11 +24,19 @@
 
 #ifndef MISC_H
 #define MISC_H
+#ifdef  __cplusplus
+extern "C" {
+/* __cplusplus */
+#endif
 
 extern int get_character_size(unsigned char c);
 extern int mbstrlen(const char* src);
 extern char* mbstrtok(char* str, char* delimiter);
 extern int strcmp_lite(const char* str1, const char* str2);
 
+#ifdef __cplusplus
+}
+/* __cplusplus */
+#endif
 /* MISC_H */
 #endif
