@@ -287,6 +287,9 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
 
     gunichar*   cpoints = NULL;
 
+    list_t*     t1      = NULL,
+          *     t2      = NULL;
+
     /* get string length */
     length = g_utf8_strlen(string, -1);
 
@@ -302,9 +305,16 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
                 LIBNAME, __FILE__, __LINE__, strerror(errno));
 
         goto ERR;
+    } else {
+        memset(dest, '\0', x_bufl);
+        delmlen = strlen((*n_cipher)->delimiter);
     }
-    memset(dest, '\0', x_bufl);
-    delmlen = strlen((*n_cipher)->delimiter);
+
+    /*
+     * setting table
+     */
+    t1 = (*n_cipher)->table->start;
+    t2 = seek_table_end((*n_cipher)->table->start);
 
     /*
      * convert ucs-4 to n_cipher
@@ -312,7 +322,7 @@ char* encode_n_cipher(N_CIPHER** n_cipher, const char* string)
     i = 0;
     while (i < length) {
         if ((tmp = encode_table((unsigned int)cpoints[i],
-                        (*n_cipher)->table->decimal, (*n_cipher)->table->start)) == NULL)
+                        (*n_cipher)->table->decimal, t1, t2)) == NULL)
             goto ERR;
 
         /*
@@ -385,6 +395,9 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
     gunichar    cpoint  = 0;
     gchar*      buf     = NULL;
 
+    list_t*     t1      = NULL,
+          *     t2      = NULL;
+
     /*
      * allocate memory
      */
@@ -418,13 +431,19 @@ char* decode_n_cipher(N_CIPHER** n_cipher, const char* string)
     memcpy(strtmp, string, strlen(string));
 
     /*
+     * setting table
+     */
+    t1 = (*n_cipher)->table->start;
+    t2 = seek_table_end((*n_cipher)->table->start);
+    
+    /*
      * decode
      */
     token = mbstrtok(strtmp, (*n_cipher)->delimiter);
     while (token != NULL) {
         /* get ucs4 codepint */
         if ((ret = decode_table(token,
-                        (*n_cipher)->table->decimal, (*n_cipher)->table->start)) < 0)
+                        (*n_cipher)->table->decimal, t1, t2)) < 0)
             goto ERR;
 
         /*
@@ -492,6 +511,7 @@ char* version_n_cipher(void)
 {
     static char version[64];
 
+    /* libncipher V.P.S-E */
     memset(version, '\0', sizeof(version));
     snprintf(version, sizeof(version), "%s %d.%d.%d%s",
             LIBNAME, VERSION, PATCHLEVEL, SUBLEVEL, EXTRAVERSION);
