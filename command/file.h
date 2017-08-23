@@ -1,40 +1,31 @@
 /*
- * n_cipher sample program
+ * libbenly (便利) - less a misc than a poor library.
  *
  * file.h
- * 
- * Copyright (c) 2017 sasairc
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
- * OR OTHER DEALINGS IN THE SOFTWARE.
+ * Copyright (c) 2015 sasairc
+ * This work is free. You can redistribute it and/or modify it under the
+ * terms of the Do What The Fuck You Want To Public License, Version 2,
+ * as published by Sam Hocevar.HocevarHocevar See the COPYING file or http://www.wtfpl.net/
+ * for more details.
  */
 
 #ifndef FILE_H
 #define FILE_H
+#ifdef  __cplusplus
+extern "C" {
+/* __cplusplus */
+#endif
 
 #include <stdio.h>
 
-extern int check_file_type(char* filename);
-extern int count_file_lines(FILE* fp);
-extern int read_file(int lines, size_t length, char** buf, FILE* fp);
 extern int p_count_file_lines(char** buf);
 extern int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int chomp);
 extern int watch_fd(int fd, long timeout);
 
+#ifdef  __cplusplus
+}
+/* __cplusplus */
+#endif
 /* FILE_H */
 #endif
