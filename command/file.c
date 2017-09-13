@@ -38,13 +38,12 @@ int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int c
     if (t_lines <= 0 || t_length <= 0 || fp == NULL)
         return -1;
 
-    int     x       = 0,
+    int     c       = 0,
+            status  = 0;
+
+    size_t  x       = 0,
             y       = 0,
-            c       = 0;
-
-    short   status  = 0;
-
-    size_t  lines   = t_lines,
+            lines   = t_lines,
             length  = t_length,
             tmplen  = 0;
 
@@ -152,15 +151,13 @@ int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int c
     return y;
 
 ERR:
-    lines   -= t_lines;
-    length  -= t_length;
-
     if (buf != NULL) {
-        while (lines >= 0) {
-            if (*(buf + lines) != NULL)
-                free(*(buf + lines));
-
-            lines--;
+        lines = y;
+        y = 0;
+        while (y <= lines) {
+            if (*(buf + y) != NULL)
+                free(*(buf + y));
+            y++;
         }
         free(buf);
     }
@@ -168,6 +165,18 @@ ERR:
         free(str);
 
     return status;
+}
+
+int file_is_binary(FILE* fp)
+{
+    int c   = 0;
+
+    while ((c = fgetc(fp)) != EOF) {
+        if (c <= 0x08)
+            return c;
+    }
+
+    return 0;
 }
 
 int watch_fd(int fd, long timeout)

@@ -21,6 +21,7 @@ extern "C" {
 
 extern int p_count_file_lines(char** buf);
 extern int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int chomp);
+extern int file_is_binary(FILE* fp);
 extern int watch_fd(int fd, long timeout);
 
 #ifdef  __cplusplus
