@@ -6,15 +6,13 @@ VERSION      = 2
 PATCHLEVEL   = 1
 SUBLEVEL     = 0
 EXTRAVERSION = -3
+LOCALE       =
 LINKERNAME   = libncipher.so
 SONAME       = $(LINKERNAME).$(VERSION)
 REALNAME     = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
-LOCALE       =
-
 SRCS         = $(wildcard *.c)
 OBJS         = $(SRCS:.c=.o)
 LIBS         = -lm `pkg-config --cflags --libs glib-2.0` 
-
 DEFCFLAGS    = -DVERSION=$(VERSION)                 \
 		-DPATCHLEVEL=$(PATCHLEVEL)          \
 		-DSUBLEVEL=$(SUBLEVEL)              \
@@ -23,7 +21,6 @@ DEFCFLAGS    = -DVERSION=$(VERSION)                 \
 		-DLOCALE=\"$(LOCALE)\"              \
 		-fPIC                               \
 	    	$(LIBS)
-
 DEFLDFLAGS   = -shared                              \
 		-Wl,-soname=$(SONAME)               \
 		$(LIBS)	
@@ -32,7 +29,7 @@ all: $(REALNAME)
 
 $(REALNAME): $(OBJS)
 ifeq ($(CMDLINE), 0)
-	@echo "  BUILD   $@"
+	@echo "  CCLD    $@"
 	@$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
 else
 	$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
