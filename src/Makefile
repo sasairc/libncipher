@@ -2,43 +2,59 @@
 #    Makefile for libncipher
 #
 
-VERSION      = 2
-PATCHLEVEL   = 1
-SUBLEVEL     = 0
-EXTRAVERSION = -3
-LINKERNAME   = libncipher.so
-SONAME       = $(LINKERNAME).$(VERSION)
-REALNAME     = $(LINKERNAME).$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
-LOCALE       =
+LIBNAME		= libncipher
+VERSION		= 2
+PATCHLEVEL	= 1
+SUBLEVEL	= 0
+EXTRAVERSION	= -4
+VERSIONSTR	= $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)
 
-SRCS         = $(wildcard *.c)
-OBJS         = $(SRCS:.c=.o)
-LIBS         = -lm `pkg-config --cflags --libs glib-2.0` 
+SRCS		= $(wildcard *.c)
+OBJS		= $(SRCS:.c=.o)
+LIBS		= -lm `pkg-config --cflags --libs glib-2.0`
+DEFCFLAGS	= -fPIC					\
+		  -DVERSION=$(VERSION)			\
+		  -DPATCHLEVEL=$(PATCHLEVEL)		\
+		  -DSUBLEVEL=$(SUBLEVEL)		\
+		  -DEXTRAVERSION=\"$(EXTRAVERSION)\"	\
+		  -DBUFLEN=$(BUFLEN)			\
+		  -DLOCALE=\"$(LOCALE)\"		\
+		  $(LIBS)
+ifeq ($(shell uname), Linux)
+LINKERNAME	= $(LIBNAME).so
+DEFLDFLAGS	= -shared				\
+		  -Wl,-soname=$(LINKERNAME).$(VERSION)	\
+		  $(LIBS)
+# for Linux
+endif
+ifeq ($(shell uname), Darwin)
+LINKERNAME	= $(LIBNAME).dylib
+DEFLDFLAGS 	= -dynamiclib -undefined suppress -flat_namespace 	\
+		   -install_name $(LINKERNAME)				\
+		   -current_version $(VERSIONSTR)			\
+		   -compatibility_version $(VERSION).$(PATCHLEVEL)	\
+		   $(LIBS)
+# for Darwin
+endif
+ifndef	LINKERNAME
+LINKERNAME	= $(LIBNAME).so
+DEFLDFLAGS	= -shared				\
+		  -Wl,-soname=$(LINKERNAME).$(VERSION)	\
+		  $(LIBS)
+# for Other System
+endif
 
-DEFCFLAGS    = -DVERSION=$(VERSION)                 \
-		-DPATCHLEVEL=$(PATCHLEVEL)          \
-		-DSUBLEVEL=$(SUBLEVEL)              \
-		-DEXTRAVERSION=\"$(EXTRAVERSION)\"  \
-		-DBUFLEN=$(BUFLEN)                  \
-		-DLOCALE=\"$(LOCALE)\"              \
-		-fPIC                               \
-	    	$(LIBS)
+all: $(LINKERNAME).$(VERSIONSTR)
 
-DEFLDFLAGS   = -shared                              \
-		-Wl,-soname=$(SONAME)               \
-		$(LIBS)	
-
-all: $(REALNAME)
-
-$(REALNAME): $(OBJS)
+$(LINKERNAME).$(VERSIONSTR): $(OBJS)
 ifeq ($(CMDLINE), 0)
-	@echo "  BUILD   $@"
+	@echo "  CCLD    $@"
 	@$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
 else
 	$(CC) $(LDFLAGS) $^ -o $@ $(DEFLDFLAGS)
 endif
 
-%.o: %.c %.h
+%.o: %.c
 ifeq ($(CMDLINE), 0)
 	@echo "  CC      $@"
 	@$(CC) $(CFLAGS) -c $< -o $@ $(DEFCFLAGS)
@@ -46,18 +62,22 @@ else
 	$(CC) $(CFLAGS) -c $< -o $@ $(DEFCFLAGS)
 endif
 
-install-lib: $(REALNAME)
+install-lib: $(LINKERNAME).$(VERSIONSTR)
 	install -pd $(LIBDIR)
-	install -pm 755 $(REALNAME) $(LIBDIR)/
-	ln -sf $(LIBDIR)/$(REALNAME) $(LIBDIR)/$(SONAME)
-	ln -sf $(LIBDIR)/$(REALNAME) $(LIBDIR)/$(LINKERNAME)
+	install -pm 755 $(LINKERNAME).$(VERSIONSTR) $(LIBDIR)/
+	ln -sf $(LIBDIR)/$(LINKERNAME).$(VERSIONSTR) $(LIBDIR)/$(LINKERNAME).$(VERSION)
+	ln -sf $(LIBDIR)/$(LINKERNAME).$(VERSIONSTR) $(LIBDIR)/$(LINKERNAME)
+ifeq ($(shell uname), Darwin)
+	install_name_tool -change "$(LINKERNAME)" "$(LIBDIR)/$(LINKERNAME)" $(LIBDIR)/$(LINKERNAME)
+# for Darwin
+endif
 
 install-header: n_cipher.h
 	install -pd $(INCLUDEDIR)
-	install -pm 644 n_cipher.h $(INCLUDEDIR)/
+	install -pm 644 $< $(INCLUDEDIR)/
 
 clean:
-	-$(RM) -f $(REALNAME)
+	-$(RM) -f $(LINKERNAME).$(VERSIONSTR)
 	-$(RM) -f $(OBJS)
 
 .PHONY: all		\

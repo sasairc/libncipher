@@ -1,7 +1,7 @@
 /*
  * libbenly (便利) - less a misc than a poor library.
  *
- * file.h
+ * memory.h
  *
  * Copyright (c) 2015 sasairc
  * This work is free. You can redistribute it and/or modify it under the
@@ -10,23 +10,23 @@
  * for more details.
  */
 
-#ifndef FILE_H
-#define FILE_H
+#ifndef MEMORY_H
+#define MEMORY_H
 #ifdef  __cplusplus
 extern "C" {
 /* __cplusplus */
 #endif
 
-#include <stdio.h>
+#include <stddef.h>
+#include <stdarg.h>
 
-extern int p_count_file_lines(char** buf);
-extern int p_read_file_char(char*** dest, int t_lines, size_t t_length, FILE* fp, int chomp);
-extern int file_is_binary(FILE* fp);
-extern int watch_fd(int fd, long timeout);
+extern void* smalloc(size_t size, const char* fmt, ...);
+extern void* srealloc(void* ptr, size_t size, const char* fmt, ...);
+extern void free2d(char** buf, int y);
 
 #ifdef  __cplusplus
 }
 /* __cplusplus */
 #endif
-/* FILE_H */
+/* MEMORY_H */
 #endif
