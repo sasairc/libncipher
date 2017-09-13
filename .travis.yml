@@ -1,15 +1,26 @@
 language: c
+os:
+    - linux
+    - osx
 compiler:
     - gcc
     - clang
+addons:
+    apt:
+        packages:
+            - tree
+            - pkg-config
+            - libglib2.0-0
+            - libglib2.0-dev
 before_install:
-    - sudo apt-get update
-    - sudo apt-get -y install tree pkg-config libglib2.0-0 libglib2.0-dev
+    - export TEST_PREFIX="$(pwd)/test_prefix"
+    - source ./testsuite/travis-ci.bash
+    - test "${TRAVIS_OS_NAME}" = "osx" && brew update; true
+    - test "${TRAVIS_OS_NAME}" = "osx" && brew install tree pkg-config glib; true
+    - test "${TRAVIS_OS_NAME}" = "osx" && test "${CC}" = "gcc" && export CC="gcc-4.9"; true
 script:
-    - export CC="$CC" TEST_PREFIX="`pwd`/test_prefix"
-    - source ./test.bash
-    - install_all "$CC" "$TEST_PREFIX"
-    - cleanup "$TEST_PREFIX"
-    - unset TEST_PREFIX
-    - make
+    - make CC="${CC}" PREFIX="${TEST_PREFIX}"
+    - make CC="${CC}" PREFIX="${TEST_PREFIX}" install
+    - tree "${TEST_PREFIX}"
+    - rm -r "${TEST_PREFIX}"
     - run_static_bin
